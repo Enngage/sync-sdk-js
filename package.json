@@ -1,0 +1,47 @@
+{
+	"name": "@kontent-ai/sync-sdk",
+	"version": "0.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kontent-ai/sync-sdk-js"
+	},
+	"private": false,
+	"author": "richard sustek",
+	"license": "MIT",
+	"description": "Sync API v2 for Kontent.ai",
+	"keywords": ["Kontent.ai", "Kontent AI", "Kontent SDK Sync API", "Sync API v2", "Sync API"],
+	"engines": {
+		"node": ">= 22"
+	},
+	"exports":"./dist/public_api.js",
+	"type": "module",
+	"scripts": {
+		"release": "standard-version",
+		"release:major": "standard-version --release-as major",
+		"prerelease": "standard-version --prerelease",
+		"prerelease:major": "standard-version --prerelease --release-as major",
+		"prepublishOnly": "npm run build && npm run push:tags",
+		"publish:beta": "npm publish --tag=next",
+		"build": "npm run clean && npm run lint:fix && tsc --p tsconfig.build.json && npm run update:version",
+		"test": "vitest run --config=vitest.config.ts",
+		"format": "biome format --write",
+		"lint": "biome lint",
+		"lint:fix": "biome lint --fix --unsafe",
+		"clean": "tsx scripts/clean.ts",
+		"push:tags": "git push --tags",
+		"update:version": "tsx ./scripts/update-version.ts"
+	},
+	"dependencies": {
+		"@kontent-ai/core-sdk": "11.0.0-1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/node": "22.15.24",
+		"chalk": "5.4.1",
+		"standard-version": "9.5.0",
+		"typescript": "5.8.3",
+		"vitest": "3.1.4",
+		"dotenv-cli": "8.0.0",
+		"tsx": "4.19.4"
+	}
+}
