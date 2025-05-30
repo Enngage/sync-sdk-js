@@ -2,7 +2,7 @@ import type { AdapterResponse, HttpService, RetryStrategyOptions } from '@konten
 import type { InitQuery } from '../queries/init-query.js';
 import type { SyncQuery } from '../queries/sync-query.js';
 
-export type SyncApiTypes = {
+export type SyncClientTypes = {
 	readonly languageCodenames: string;
 	readonly typeCodenames: string;
 	readonly workflowCodenames: string;
@@ -28,7 +28,7 @@ export type SyncClientConfig = {
 	readonly retryStrategy?: RetryStrategyOptions;
 };
 
-export type SyncClient<TSyncApiTypes extends SyncApiTypes = SyncApiTypes> = {
+export type SyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
 	readonly config: SyncClientConfig;
 
 	init(): InitQuery;

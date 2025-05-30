@@ -1,7 +1,7 @@
-import type { BaseQuery, SyncApiTypes, SyncClient, SyncClientConfig } from '../models/core.models.js';
+import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes } from '../models/core.models.js';
 import { getEndpointUrl, requestAsync } from '../utils/query.utils.js';
 
-export type InitQueryResponseData = {
+export type InitQueryPayload = {
 	/**
 	 * Always empty array in init query
 	 */
@@ -20,12 +20,12 @@ export type InitQueryResponseData = {
 	readonly taxonomies: readonly [];
 };
 
-export type InitQuery = BaseQuery<InitQueryResponseData>;
+export type InitQuery = BaseQuery<InitQueryPayload>;
 
-export function getInitQuery<TSyncApiTypes extends SyncApiTypes>(config: SyncClientConfig): ReturnType<SyncClient<TSyncApiTypes>['init']> {
+export function getInitQuery<TSyncApiTypes extends SyncClientTypes>(config: SyncClientConfig): ReturnType<SyncClient<TSyncApiTypes>['init']> {
 	return {
 		toPromise: async () => {
-			return await requestAsync<InitQueryResponseData, null>({
+			return await requestAsync<InitQueryPayload, null>({
 				config,
 				func: async (httpService) => {
 					return await httpService.requestAsync({

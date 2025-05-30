@@ -1,4 +1,4 @@
-import type { SyncApiTypes } from './core.models.js';
+import type { SyncClientTypes } from './core.models.js';
 
 export type ChangeType = 'changed' | 'deleted';
 
@@ -8,7 +8,7 @@ export type DeltaObject<TData> = {
 	readonly data: TData;
 };
 
-export type ContentItemSystem<TSyncApiTypes extends SyncApiTypes> = {
+export type ContentItemSystem<TSyncApiTypes extends SyncClientTypes> = {
 	readonly id: string;
 	readonly collection: TSyncApiTypes['collectionCodenames'];
 	readonly codename: string;
@@ -20,38 +20,38 @@ export type ContentItemSystem<TSyncApiTypes extends SyncApiTypes> = {
 	readonly workflow_step?: TSyncApiTypes['workflowStepCodenames'];
 };
 
-export type ContentTypeSystem<TSyncApiTypes extends SyncApiTypes> = {
+export type ContentTypeSystem<TSyncApiTypes extends SyncClientTypes> = {
 	readonly id: string;
 	readonly codename: TSyncApiTypes['typeCodenames'];
 	readonly name: string;
 	readonly last_modified: string;
 };
 
-export type LanguageSystem<TSyncApiTypes extends SyncApiTypes> = {
+export type LanguageSystem<TSyncApiTypes extends SyncClientTypes> = {
 	readonly id: string;
 	readonly codename: TSyncApiTypes['languageCodenames'];
 	readonly name: string;
 };
 
-export type TaxonomySystem<TSyncApiTypes extends SyncApiTypes> = {
+export type TaxonomySystem<TSyncApiTypes extends SyncClientTypes> = {
 	readonly id: string;
 	readonly codename: TSyncApiTypes['taxonomyCodenames'];
 	readonly name: string;
 	readonly last_modified: string;
 };
 
-export type ContentItemDeltaObject<TSyncApiTypes extends SyncApiTypes> = DeltaObject<{
+export type ContentItemDeltaObject<TSyncApiTypes extends SyncClientTypes> = DeltaObject<{
 	readonly system: ContentItemSystem<TSyncApiTypes>;
 }>;
 
-export type ContentTypeDeltaObject<TSyncApiTypes extends SyncApiTypes> = DeltaObject<{
+export type ContentTypeDeltaObject<TSyncApiTypes extends SyncClientTypes> = DeltaObject<{
 	readonly system: ContentTypeSystem<TSyncApiTypes>;
 }>;
 
-export type LanguageDeltaObject<TSyncApiTypes extends SyncApiTypes> = DeltaObject<{
+export type LanguageDeltaObject<TSyncApiTypes extends SyncClientTypes> = DeltaObject<{
 	readonly system: LanguageSystem<TSyncApiTypes>;
 }>;
 
-export type TaxonomyDeltaObject<TSyncApiTypes extends SyncApiTypes> = DeltaObject<{
+export type TaxonomyDeltaObject<TSyncApiTypes extends SyncClientTypes> = DeltaObject<{
 	readonly system: TaxonomySystem<TSyncApiTypes>;
 }>;
