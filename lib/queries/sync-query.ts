@@ -1,26 +1,51 @@
-import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes } from '../models/core.models.js';
+import type { BaseQuery, EmptyObject, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from '../models/core.models.js';
 import type { ContentItemDeltaObject, ContentTypeDeltaObject, LanguageDeltaObject, TaxonomyDeltaObject } from '../models/synchronization.models.js';
-import { getEndpointUrl, requestAsync } from '../utils/query.utils.js';
+import { getSyncEndpointUrl, requestAsync } from '../utils/query.utils.js';
 
 export type SyncQueryPayload<TSyncApiTypes extends SyncClientTypes> = {
+	/**
+	 * The list of content items that have been changed or deleted.
+	 */
 	readonly items: readonly ContentItemDeltaObject<TSyncApiTypes>[];
+
+	/**
+	 * The list of content types that have been changed or deleted.
+	 */
 	readonly types: readonly ContentTypeDeltaObject<TSyncApiTypes>[];
+
+	/**
+	 * The list of languages that have been changed or deleted.
+	 */
 	readonly languages: readonly LanguageDeltaObject<TSyncApiTypes>[];
+
+	/**
+	 * The list of taxonomies that have been changed or deleted.
+	 */
 	readonly taxonomies: readonly TaxonomyDeltaObject<TSyncApiTypes>[];
 };
 
 export type SyncQuery<TSyncApiTypes extends SyncClientTypes> = BaseQuery<SyncQueryPayload<TSyncApiTypes>>;
 
-export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(config: SyncClientConfig): ReturnType<SyncClient<TSyncApiTypes>['sync']> {
+export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(
+	config: SyncClientConfig,
+	continuationToken: string,
+): ReturnType<SyncClient<TSyncApiTypes>['sync']> {
 	return {
 		toPromise: async () => {
-			return await requestAsync<SyncQueryPayload<TSyncApiTypes>, null>({
+			return await requestAsync<SyncQueryPayload<TSyncApiTypes>, null, EmptyObject>({
 				config,
+				extraMetadata: () => ({}),
 				func: async (httpService) => {
 					return await httpService.requestAsync({
-						url: getEndpointUrl({ environmentId: config.environmentId, path: '/sync' }),
+						url: getSyncEndpointUrl({ environmentId: config.environmentId, path: '/sync' }),
 						body: null,
 						method: 'GET',
+						requestHeaders: [
+							{
+								name: 'X-Continuation' satisfies SyncHeaderNames,
+								value: continuationToken,
+							},
+						],
 					});
 				},
 			});

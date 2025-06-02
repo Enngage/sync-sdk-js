@@ -1,5 +1,5 @@
-import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes } from '../models/core.models.js';
-import { getEndpointUrl, requestAsync } from '../utils/query.utils.js';
+import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from '../models/core.models.js';
+import { extractContinuationToken, getSyncEndpointUrl, requestAsync } from '../utils/query.utils.js';
 
 export type InitQueryPayload = {
 	/**
@@ -20,16 +20,29 @@ export type InitQueryPayload = {
 	readonly taxonomies: readonly [];
 };
 
-export type InitQuery = BaseQuery<InitQueryPayload>;
+type InitQueryExtraData = { readonly continuationToken: string };
+
+export type InitQuery = BaseQuery<InitQueryPayload, InitQueryExtraData>;
 
 export function getInitQuery<TSyncApiTypes extends SyncClientTypes>(config: SyncClientConfig): ReturnType<SyncClient<TSyncApiTypes>['init']> {
 	return {
 		toPromise: async () => {
-			return await requestAsync<InitQueryPayload, null>({
+			return await requestAsync<InitQueryPayload, null, InitQueryExtraData>({
 				config,
+				extraMetadata: (response) => {
+					const continuationToken = extractContinuationToken(response.adapterResponse.responseHeaders);
+
+					if (!continuationToken) {
+						throw new Error(`Invalid response: missing '${'X-Continuation' satisfies SyncHeaderNames}' header`);
+					}
+
+					return {
+						continuationToken,
+					};
+				},
 				func: async (httpService) => {
 					return await httpService.requestAsync({
-						url: getEndpointUrl({ environmentId: config.environmentId, path: '/sync/init' }),
+						url: getSyncEndpointUrl({ environmentId: config.environmentId, path: '/sync/init' }),
 						body: null,
 						method: 'POST',
 					});

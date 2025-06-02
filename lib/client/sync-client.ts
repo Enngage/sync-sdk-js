@@ -6,6 +6,6 @@ export function getSyncClient<TSyncApiTypes extends SyncClientTypes>(config: Syn
 	return {
 		config,
 		init: () => getInitQuery<TSyncApiTypes>(config),
-		sync: () => getSyncQuery<TSyncApiTypes>(config),
+		sync: (continuationToken: string) => getSyncQuery<TSyncApiTypes>(config, continuationToken),
 	};
 }
