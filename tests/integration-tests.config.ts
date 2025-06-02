@@ -1,9 +1,10 @@
 import { getEndpointUrl } from '../lib/utils/query.utils.js';
-import { getEnvironmentRequiredValue } from './utils/test.utils.js';
+import { getEnvironmentOptionalValue, getEnvironmentRequiredValue } from './utils/test.utils.js';
 
 const integrationEnv = {
 	id: getEnvironmentRequiredValue('INTEGRATION_ENVIRONMENT_ID'),
 	mapiKey: getEnvironmentRequiredValue('INTEGRATION_MANAGEMENT_API_KEY'),
+	mapiBaseUrl: getEnvironmentOptionalValue('INTEGRATION_MANAGEMENT_BASE_URL'),
 } as const;
 
 export function getIntegrationTestConfig() {
@@ -28,6 +29,5 @@ export function getIntegrationTestConfig() {
 }
 
 export function getMapiEndpointUrl({ environmentId, path }: { readonly environmentId: string; readonly path: string }): string {
-	// return getEndpointUrl({ environmentId, path, baseUrl: 'https://manage.kontent.ai/v2/projects/' });
-	return getEndpointUrl({ environmentId, path, baseUrl: 'https://manage.devkontentmasters.com/v2/projects/' });
+	return getEndpointUrl({ environmentId, path, baseUrl: integrationEnv.mapiBaseUrl ?? 'https://manage.kontent.ai/v2/projects/' });
 }
