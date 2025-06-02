@@ -7,7 +7,7 @@ import { waitAsync } from '../utils/test.utils.js';
 type IntegrationSyncData = Parameters<typeof processChangesForIntegrationTestAsync>[0];
 
 describe('Sync query', async () => {
-	const timestamp = new Date().toJSON();
+	const timestamp = new Date().getTime();
 	const syncData: IntegrationSyncData = {
 		item: {
 			codename: 'integration_test_item',
@@ -19,6 +19,11 @@ describe('Sync query', async () => {
 		},
 		language: {
 			codename: 'default',
+			name: `Lang (${timestamp})`,
+		},
+		taxonomy: {
+			codename: 'integration_test_taxonomy',
+			name: `Integration taxonomy (${timestamp})`,
 		},
 		element: { type: 'text', name: 'Text element', codename: 'text_el', value: 'Elem value' },
 	};

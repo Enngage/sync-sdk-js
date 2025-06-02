@@ -1,10 +1,6 @@
 import { CoreSdkError, HttpServiceInvalidResponseError, getDefaultHttpService } from '@kontent-ai/core-sdk';
 import { getIntegrationTestConfig } from '../integration-tests.config.js';
 
-type LanguageEntityData = {
-	readonly codename: string;
-};
-
 type ElementChangeEntityData = { readonly value: string } & ElementData;
 
 type SharedEntityData = {
@@ -33,9 +29,10 @@ const httpService = getDefaultHttpService({
 	],
 });
 
-export async function prepareEnvironmentAsync({ item, type, element }: Parameters<typeof processChangesForIntegrationTestAsync>[0]): Promise<void> {
+export async function prepareEnvironmentAsync({ item, type, taxonomy }: Parameters<typeof processChangesForIntegrationTestAsync>[0]): Promise<void> {
 	await deleteEntityAsync(config.urls.contentItem(item.codename));
 	await deleteEntityAsync(config.urls.contentType(type.codename));
+	await deleteEntityAsync(config.urls.taxonomy(taxonomy.codename));
 }
 
 export async function processChangesForIntegrationTestAsync({
@@ -43,14 +40,51 @@ export async function processChangesForIntegrationTestAsync({
 	type,
 	element,
 	language,
+	taxonomy,
 }: {
 	readonly type: SharedEntityData;
 	readonly element: ElementChangeEntityData;
 	readonly item: SharedEntityData;
-	readonly language: LanguageEntityData;
+	readonly language: SharedEntityData;
+	readonly taxonomy: SharedEntityData;
 }): Promise<void> {
 	await createContentTypeAsync(type, element);
 	await createContentItemAndVariantAsync(item, type, language, element);
+	await renameLanguageAsync(language);
+	await createTaxonomyAsync(taxonomy);
+}
+
+async function renameLanguageAsync(language: SharedEntityData): Promise<void> {
+	await httpService.requestAsync<
+		SharedEntityData,
+		{
+			op: 'replace';
+			property_name: 'name';
+			value: string;
+		}[]
+	>({
+		url: config.urls.language(language.codename),
+		body: [
+			{
+				op: 'replace',
+				property_name: 'name',
+				value: language.name,
+			},
+		],
+		method: 'PATCH',
+	});
+}
+
+async function createTaxonomyAsync(taxonomy: SharedEntityData): Promise<void> {
+	await httpService.requestAsync<SharedEntityData, SharedEntityData & { terms: [] }>({
+		url: config.urls.taxonomies,
+		body: {
+			codename: taxonomy.codename,
+			name: taxonomy.name,
+			terms: [],
+		},
+		method: 'POST',
+	});
 }
 
 async function createContentTypeAsync(type: SharedEntityData, element: ElementChangeEntityData): Promise<void> {
@@ -89,7 +123,7 @@ async function deleteEntityAsync(url: string): Promise<void> {
 async function createContentItemAndVariantAsync(
 	item: SharedEntityData,
 	type: SharedEntityData,
-	language: LanguageEntityData,
+	language: SharedEntityData,
 	element: ElementChangeEntityData,
 ): Promise<void> {
 	await httpService.requestAsync<

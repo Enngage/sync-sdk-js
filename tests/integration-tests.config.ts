@@ -15,10 +15,13 @@ export function getIntegrationTestConfig() {
 		mapiKey: integrationEnv.mapiKey,
 		urls: {
 			contentType: (codename: string) => getMapiEndpointUrl({ environmentId: integrationEnv.id, path: `/types/codename/${codename}` }),
+			taxonomy: (codename: string) => getMapiEndpointUrl({ environmentId: integrationEnv.id, path: `/taxonomies/codename/${codename}` }),
 			contentItem: (codename: string) => getMapiEndpointUrl({ environmentId: integrationEnv.id, path: `/items/codename/${codename}` }),
+			language: (codename: string) => getMapiEndpointUrl({ environmentId: integrationEnv.id, path: `/languages/codename/${codename}` }),
 			languageVariant: languageVariantUrl,
 			publish: (itemCodename: string, languageCodename: string) => `${languageVariantUrl(itemCodename, languageCodename)}/publish`,
 			contentTypes: getMapiEndpointUrl({ environmentId: integrationEnv.id, path: '/types' }),
+			taxonomies: getMapiEndpointUrl({ environmentId: integrationEnv.id, path: '/taxonomies' }),
 			contentItems: getMapiEndpointUrl({ environmentId: integrationEnv.id, path: '/items' }),
 		},
 	};
