@@ -20,14 +20,14 @@ export type InitQueryPayload = {
 	readonly taxonomies: readonly [];
 };
 
-type InitQueryExtraData = { readonly continuationToken: string };
+type InitQueryMetadata = { readonly continuationToken: string };
 
-export type InitQuery = BaseQuery<InitQueryPayload, InitQueryExtraData>;
+export type InitQuery = BaseQuery<InitQueryPayload, InitQueryMetadata>;
 
 export function getInitQuery<TSyncApiTypes extends SyncClientTypes>(config: SyncClientConfig): ReturnType<SyncClient<TSyncApiTypes>['init']> {
 	return {
 		toPromise: async () => {
-			return await requestAsync<InitQueryPayload, null, InitQueryExtraData>({
+			return await requestAsync<InitQueryPayload, null, InitQueryMetadata>({
 				config,
 				extraMetadata: (response) => {
 					const continuationToken = extractContinuationToken(response.adapterResponse.responseHeaders);
