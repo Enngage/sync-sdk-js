@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, suite } from 'vitest';
 import { z } from 'zod/v4';
 import { getSyncClient } from '../../lib/public_api.js';
 import { getIntegrationTestConfig } from '../integration-tests.config.js';
@@ -22,7 +22,7 @@ describe('Sync query', async () => {
 	// Process all changes once we have initial continuation token
 	await processChangesForIntegrationTestAsync(syncData);
 
-	describe('Type delta object', async () => {
+	suite.concurrent('Type delta object', async () => {
 		const deltaTypeObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -39,7 +39,7 @@ describe('Sync query', async () => {
 		});
 	});
 
-	describe('Taxonomy delta object', async () => {
+	suite.concurrent('Taxonomy delta object', async () => {
 		const deltaTaxonomyObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -56,7 +56,7 @@ describe('Sync query', async () => {
 		});
 	});
 
-	describe('Item delta object', async () => {
+	suite.concurrent('Item delta object', async () => {
 		const deltaItemObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -73,7 +73,7 @@ describe('Sync query', async () => {
 		});
 	});
 
-	describe('Language delta object', async () => {
+	suite.concurrent('Language delta object', async () => {
 		const deltaLanguageObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -122,11 +122,11 @@ function getSchemas(syncData: IntegrationSyncData): {
 	readonly languageDeltaObject: z.ZodObject;
 } {
 	return {
-		typeDeltaObject: z.object({
+		typeDeltaObject: z.strictObject({
 			change_type: z.literal('changed'),
 			timestamp: z.string(),
-			data: z.object({
-				system: z.object({
+			data: z.strictObject({
+				system: z.strictObject({
 					name: z.literal(syncData.type.name),
 					id: z.string(),
 					codename: z.literal(syncData.type.codename),
@@ -134,11 +134,11 @@ function getSchemas(syncData: IntegrationSyncData): {
 				}),
 			}),
 		}),
-		taxonomyDeltaObject: z.object({
+		taxonomyDeltaObject: z.strictObject({
 			change_type: z.literal('changed'),
 			timestamp: z.string(),
-			data: z.object({
-				system: z.object({
+			data: z.strictObject({
+				system: z.strictObject({
 					name: z.literal(syncData.taxonomy.name),
 					id: z.string(),
 					codename: z.literal(syncData.taxonomy.codename),
@@ -146,23 +146,29 @@ function getSchemas(syncData: IntegrationSyncData): {
 				}),
 			}),
 		}),
-		itemDeltaObject: z.object({
+		itemDeltaObject: z.strictObject({
 			change_type: z.literal('changed'),
 			timestamp: z.string(),
-			data: z.object({
-				system: z.object({
+			data: z.strictObject({
+				system: z.strictObject({
 					name: z.literal(syncData.item.name),
 					id: z.string(),
 					codename: z.literal(syncData.item.codename),
 					last_modified: z.string(),
+					language: z.literal(syncData.language.codename),
+					type: z.literal(syncData.type.codename),
+					collection: z.string(),
+					sitemap_locations: z.array(z.string()),
+					workflow: z.string(),
+					workflow_step: z.string(),
 				}),
 			}),
 		}),
-		languageDeltaObject: z.object({
+		languageDeltaObject: z.strictObject({
 			change_type: z.literal('changed'),
 			timestamp: z.string(),
-			data: z.object({
-				system: z.object({
+			data: z.strictObject({
+				system: z.strictObject({
 					name: z.literal(syncData.language.name),
 					id: z.string(),
 					codename: z.literal(syncData.language.codename),
