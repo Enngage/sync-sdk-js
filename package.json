@@ -32,10 +32,10 @@
 		"update:version": "tsx ./scripts/update-version.ts"
 	},
 	"dependencies": {
-		"@kontent-ai/core-sdk": "11.0.0-1"
+		"@kontent-ai/core-sdk": "11.0.0-2"
 	},
 	"devDependencies": {
-		"zod": "3.25.48",
+		"zod": "3.25.49",
 		"@biomejs/biome": "1.9.4",
 		"@types/node": "22.15.29",
 		"chalk": "5.4.1",

@@ -1,4 +1,4 @@
-import { CoreSdkError, HttpServiceInvalidResponseError, getDefaultHttpService } from '@kontent-ai/core-sdk';
+import { getDefaultHttpService, isKontent404Error } from '@kontent-ai/core-sdk';
 import { getIntegrationTestConfig } from '../integration-tests.config.js';
 
 type ElementChangeEntityData = { readonly value: string } & ElementData;
@@ -171,16 +171,10 @@ async function skip404ErrorsAsync<T>(fn: () => Promise<T>): Promise<T | undefine
 	try {
 		return await fn();
 	} catch (error) {
-		if (is404Error(error)) {
+		if (isKontent404Error(error)) {
 			return undefined;
 		}
 
 		throw error;
 	}
-}
-
-function is404Error(error: unknown): boolean {
-	return (
-		error instanceof CoreSdkError && error.originalError instanceof HttpServiceInvalidResponseError && error.originalError.adapterResponse.status === 404
-	);
 }
