@@ -8,18 +8,17 @@ type IntegrationSyncData = Parameters<typeof processChangesForIntegrationTestAsy
 
 describe('Sync query', async () => {
 	const config = getIntegrationTestConfig();
-	const client = getSyncClient({ environmentId: config.environmentId });
+	const client = getSyncClient(config.env.id).publicApi().create({ baseUrl: config.env.syncBaseUrl });
 	const syncData = getSyncData();
 	const validationSchemas = getSchemas(syncData);
 	const pollWaitInMs: number = 500;
 	const maxRetries: number = 20;
 
-	// Get initial continuation token after preparing environment
 	await prepareEnvironmentAsync(syncData);
 
+	// Get initial continuation token after preparing environment & waiting until Delivery API changes are propagated
 	const token = (await client.init().toPromise()).meta.continuationToken;
 
-	// Process all changes once we have initial continuation token
 	await processChangesForIntegrationTestAsync(syncData);
 
 	suite.concurrent('Type delta object', async () => {

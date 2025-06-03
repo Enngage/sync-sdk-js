@@ -25,7 +25,7 @@ const httpService = getDefaultHttpService({
 	requestHeaders: [
 		{
 			name: 'Authorization',
-			value: `Bearer ${config.mapiKey}`,
+			value: `Bearer ${config.env.mapiKey}`,
 		},
 	],
 });

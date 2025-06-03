@@ -6,6 +6,7 @@ const integrationEnv = {
 	mapiKey: getEnvironmentRequiredValue('INTEGRATION_MANAGEMENT_API_KEY'),
 	mapiBaseUrl: getEnvironmentOptionalValue('INTEGRATION_MANAGEMENT_BASE_URL'),
 	deliveryBaseUrl: getEnvironmentOptionalValue('INTEGRATION_DELIVERY_BASE_URL'),
+	syncBaseUrl: getEnvironmentOptionalValue('INTEGRATION_DELIVERY_SYNC_BASE_URL'),
 } as const;
 
 export function getIntegrationTestConfig() {
@@ -16,8 +17,7 @@ export function getIntegrationTestConfig() {
 		});
 
 	return {
-		environmentId: integrationEnv.id,
-		mapiKey: integrationEnv.mapiKey,
+		env: integrationEnv,
 		mapiUrls: {
 			contentType: (codename: string) =>
 				getMapiEndpointUrl({

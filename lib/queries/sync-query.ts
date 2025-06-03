@@ -30,14 +30,17 @@ export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(
 	config: SyncClientConfig,
 	continuationToken: string,
 ): ReturnType<SyncClient<TSyncApiTypes>['sync']> {
+	const url = getSyncEndpointUrl({ path: '/sync', ...config });
+
 	return {
+		toUrl: () => url,
 		toPromise: async () => {
 			return await requestAsync<SyncQueryPayload<TSyncApiTypes>, null, EmptyObject>({
 				config,
 				extraMetadata: () => ({}),
 				func: async (httpService) => {
 					return await httpService.requestAsync({
-						url: getSyncEndpointUrl({ environmentId: config.environmentId, path: '/sync' }),
+						url: url,
 						body: null,
 						method: 'GET',
 						requestHeaders: [

@@ -25,7 +25,10 @@ type InitQueryMetadata = { readonly continuationToken: string };
 export type InitQuery = BaseQuery<InitQueryPayload, InitQueryMetadata>;
 
 export function getInitQuery<TSyncApiTypes extends SyncClientTypes>(config: SyncClientConfig): ReturnType<SyncClient<TSyncApiTypes>['init']> {
+	const url = getSyncEndpointUrl({ path: '/sync/init', ...config });
+
 	return {
+		toUrl: () => url,
 		toPromise: async () => {
 			return await requestAsync<InitQueryPayload, null, InitQueryMetadata>({
 				config,
@@ -42,7 +45,7 @@ export function getInitQuery<TSyncApiTypes extends SyncClientTypes>(config: Sync
 				},
 				func: async (httpService) => {
 					return await httpService.requestAsync({
-						url: getSyncEndpointUrl({ environmentId: config.environmentId, path: '/sync/init' }),
+						url: url,
 						body: null,
 						method: 'POST',
 					});

@@ -21,14 +21,33 @@ export type SyncResponse<TPayload, TExtraMetadata = unknown> = {
 };
 
 export type BaseQuery<TPayload, TExtraData = unknown> = {
+	toUrl(): string;
 	toPromise(): Promise<SyncResponse<TPayload, TExtraData>>;
 };
+
+export type ApiMode = 'public' | 'preview' | 'secure';
 
 export type SyncClientConfig = {
 	/**
 	 * The environment ID of your Kontent.ai project. Can be found under 'Project settings' in the Kontent.ai app.
 	 */
 	readonly environmentId: string;
+
+	/**
+	 * Delivery API key.
+	 *
+	 * Required for secure and preview modes.
+	 */
+	readonly deliveryApiKey?: string;
+
+	/**
+	 * Mode for the API.
+	 *
+	 * Secure mode requires a delivery API key with secure access.
+	 * Preview mode requires a delivery API key with preview access.
+	 * Delivery mode is used for public access.
+	 */
+	readonly apiMode: ApiMode;
 
 	/**
 	 * The HTTP service to use for the request. If not provided, the default HTTP service will be used.
@@ -43,6 +62,13 @@ export type SyncClientConfig = {
 	 * The retry strategy to use for the request. If not provided, the default retry strategy will be used.
 	 */
 	readonly retryStrategy?: RetryStrategyOptions;
+
+	/**
+	 * The base URL to use for the request. If not provided, the default base URL will be used.
+	 *
+	 * If provided, it will override the default base URL based on selected API mode.
+	 */
+	readonly baseUrl?: string;
 };
 
 export type SyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
@@ -55,3 +81,17 @@ export type SyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> 
 export type SyncHeaderNames = 'X-Continuation';
 
 export type EmptyObject = Record<string, never>;
+
+export type GetSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
+	publicApi: () => {
+		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
+	};
+	previewApi: (deliveryApiKey: string) => {
+		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
+	};
+	secureApi: (deliveryApiKey: string) => {
+		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
+	};
+};
+
+export type CreateSyncClientOptions = Omit<SyncClientConfig, 'environmentId' | 'apiMode' | 'deliveryApiKey'>;

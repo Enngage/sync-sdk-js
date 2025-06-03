@@ -1,5 +1,5 @@
 import { type Header, type HttpResponse, type HttpService, type JsonValue, getDefaultHttpService } from '@kontent-ai/core-sdk';
-import type { EmptyObject, SyncClientConfig, SyncHeaderNames, SyncResponse } from '../models/core.models.js';
+import type { ApiMode, EmptyObject, SyncClientConfig, SyncHeaderNames, SyncResponse } from '../models/core.models.js';
 
 export async function requestAsync<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob, TExtraMetadata = EmptyObject>({
 	config,
@@ -23,13 +23,17 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 	};
 }
 
-export function getSyncEndpointUrl({ environmentId, path }: { readonly environmentId: string; readonly path: string }): string {
-	return getEndpointUrl({ environmentId, path, baseUrl: 'https://deliver.devkontentmasters.com/v2/' });
+export function getSyncEndpointUrl({
+	environmentId,
+	path,
+	baseUrl,
+	apiMode,
+}: { readonly path: string } & Pick<SyncClientConfig, 'baseUrl' | 'environmentId' | 'apiMode'>): string {
+	return getEndpointUrl({ environmentId, path, baseUrl: baseUrl ?? getDefaultBaseUrlForApiMode(apiMode) });
 }
 
 export function getEndpointUrl({ environmentId, path, baseUrl }: { readonly environmentId: string; readonly path: string; readonly baseUrl: string }): string {
 	return removeDuplicateSlashes(`${baseUrl}/${environmentId}/${path}`);
-	// return `https://deliver.kontent.ai/v2/${removeDuplicateSlashes(`${environmentId}/${path}`)}`;
 }
 
 export function removeDuplicateSlashes(path: string): string {
@@ -42,4 +46,12 @@ export function extractContinuationToken(responseHeaders: readonly Header[]): st
 
 function getHttpService(config: SyncClientConfig) {
 	return config.httpService ?? getDefaultHttpService({ retryStrategy: config.retryStrategy });
+}
+
+function getDefaultBaseUrlForApiMode(apiMode: ApiMode): string {
+	if (apiMode === 'preview') {
+		return 'https://preview-deliver.kontent.ai';
+	}
+
+	return 'https://deliver.kontent.ai';
 }
