@@ -22,7 +22,7 @@ describe('Sync query', async () => {
 	// Process all changes once we have initial continuation token
 	await processChangesForIntegrationTestAsync(syncData);
 
-	describe('Type delta', async () => {
+	describe('Type delta object', async () => {
 		const deltaTypeObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -34,6 +34,57 @@ describe('Sync query', async () => {
 
 		it('Response payload should match schema', async () => {
 			const parseResult = await validationSchemas.typeDeltaObject.safeParseAsync(deltaTypeObject);
+			expect(parseResult.error).toBeUndefined();
+			expect(parseResult.success).toBeTruthy();
+		});
+	});
+
+	describe('Taxonomy delta object', async () => {
+		const deltaTaxonomyObject = await pollSyncApiAsync({
+			client,
+			token,
+			getDeltaObject: (response) => response.payload.taxonomies.find((m) => m.data.system.codename === syncData.taxonomy.codename),
+			retryAttempt: 0,
+			maxRetries,
+			pollWaitInMs,
+		});
+
+		it('Response payload should match schema', async () => {
+			const parseResult = await validationSchemas.taxonomyDeltaObject.safeParseAsync(deltaTaxonomyObject);
+			expect(parseResult.error).toBeUndefined();
+			expect(parseResult.success).toBeTruthy();
+		});
+	});
+
+	describe('Item delta object', async () => {
+		const deltaItemObject = await pollSyncApiAsync({
+			client,
+			token,
+			getDeltaObject: (response) => response.payload.items.find((m) => m.data.system.codename === syncData.item.codename),
+			retryAttempt: 0,
+			maxRetries,
+			pollWaitInMs,
+		});
+
+		it('Response payload should match schema', async () => {
+			const parseResult = await validationSchemas.itemDeltaObject.safeParseAsync(deltaItemObject);
+			expect(parseResult.error).toBeUndefined();
+			expect(parseResult.success).toBeTruthy();
+		});
+	});
+
+	describe('Language delta object', async () => {
+		const deltaLanguageObject = await pollSyncApiAsync({
+			client,
+			token,
+			getDeltaObject: (response) => response.payload.languages.find((m) => m.data.system.codename === syncData.language.codename),
+			retryAttempt: 0,
+			maxRetries,
+			pollWaitInMs,
+		});
+
+		it('Response payload should match schema', async () => {
+			const parseResult = await validationSchemas.languageDeltaObject.safeParseAsync(deltaLanguageObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
 		});
@@ -66,6 +117,9 @@ function getSyncData(): IntegrationSyncData {
 
 function getSchemas(syncData: IntegrationSyncData): {
 	readonly typeDeltaObject: z.ZodObject;
+	readonly taxonomyDeltaObject: z.ZodObject;
+	readonly itemDeltaObject: z.ZodObject;
+	readonly languageDeltaObject: z.ZodObject;
 } {
 	return {
 		typeDeltaObject: z.object({
@@ -77,6 +131,41 @@ function getSchemas(syncData: IntegrationSyncData): {
 					id: z.string(),
 					codename: z.literal(syncData.type.codename),
 					last_modified: z.string(),
+				}),
+			}),
+		}),
+		taxonomyDeltaObject: z.object({
+			change_type: z.literal('changed'),
+			timestamp: z.string(),
+			data: z.object({
+				system: z.object({
+					name: z.literal(syncData.taxonomy.name),
+					id: z.string(),
+					codename: z.literal(syncData.taxonomy.codename),
+					last_modified: z.string(),
+				}),
+			}),
+		}),
+		itemDeltaObject: z.object({
+			change_type: z.literal('changed'),
+			timestamp: z.string(),
+			data: z.object({
+				system: z.object({
+					name: z.literal(syncData.item.name),
+					id: z.string(),
+					codename: z.literal(syncData.item.codename),
+					last_modified: z.string(),
+				}),
+			}),
+		}),
+		languageDeltaObject: z.object({
+			change_type: z.literal('changed'),
+			timestamp: z.string(),
+			data: z.object({
+				system: z.object({
+					name: z.literal(syncData.language.name),
+					id: z.string(),
+					codename: z.literal(syncData.language.codename),
 				}),
 			}),
 		}),
