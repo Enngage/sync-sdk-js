@@ -1,4 +1,5 @@
 import { getDefaultHttpService, isKontent404Error } from '@kontent-ai/core-sdk';
+import type { SyncClient, SyncClientTypes, SyncQueryPayload, SyncResponse } from '../../lib/public_api.js';
 import { getIntegrationTestConfig } from '../integration-tests.config.js';
 
 type ElementChangeEntityData = { readonly value: string } & ElementData;
@@ -30,9 +31,21 @@ const httpService = getDefaultHttpService({
 });
 
 export async function prepareEnvironmentAsync({ item, type, taxonomy }: Parameters<typeof processChangesForIntegrationTestAsync>[0]): Promise<void> {
-	await deleteEntityAsync(config.urls.contentItem(item.codename));
-	await deleteEntityAsync(config.urls.contentType(type.codename));
-	await deleteEntityAsync(config.urls.taxonomy(taxonomy.codename));
+	await Promise.all([
+		deleteEntityAndWaitUntilPropagatedToDeliveryApiAsync({
+			deleteUrl: config.mapiUrls.taxonomy(taxonomy.codename),
+			deliveryGetUrl: config.deliveryUrls.taxonomy(taxonomy.codename),
+		}),
+		deleteEntityAndWaitUntilPropagatedToDeliveryApiAsync({
+			deleteUrl: config.mapiUrls.contentItem(item.codename),
+			deliveryGetUrl: config.deliveryUrls.contentItem(item.codename),
+		}),
+	]);
+
+	await deleteEntityAndWaitUntilPropagatedToDeliveryApiAsync({
+		deleteUrl: config.mapiUrls.contentType(type.codename),
+		deliveryGetUrl: config.deliveryUrls.contentType(type.codename),
+	});
 }
 
 export async function processChangesForIntegrationTestAsync({
@@ -49,11 +62,79 @@ export async function processChangesForIntegrationTestAsync({
 	readonly taxonomy: SharedEntityData;
 }): Promise<void> {
 	await createContentTypeAsync(type, element);
-	await createContentItemAndVariantAsync(item, type, language, element);
-	await renameLanguageAsync(language);
-	await createTaxonomyAsync(taxonomy);
+
+	await Promise.all([createTaxonomyAsync(taxonomy), renameLanguageAsync(language), createContentItemAndVariantAsync(item, type, language, element)]);
 }
 
+export async function pollSyncApiAsync<T>({
+	token,
+	client,
+	getDeltaObject,
+	retryAttempt,
+	maxRetries,
+	pollWaitInMs,
+}: {
+	readonly client: SyncClient<SyncClientTypes>;
+	readonly pollWaitInMs: number;
+	readonly token: string;
+	readonly getDeltaObject: (response: SyncResponse<SyncQueryPayload<SyncClientTypes>>) => T | undefined;
+	readonly retryAttempt: number;
+	readonly maxRetries: number;
+}): Promise<T | undefined> {
+	if (retryAttempt >= maxRetries) {
+		return undefined;
+	}
+
+	const syncResponse = await client.sync(token).toPromise();
+
+	const data = await getDeltaObject(syncResponse);
+
+	if (!data) {
+		// if data is not available, wait & try again
+		await waitAsync(pollWaitInMs);
+		return await pollSyncApiAsync({ client, getDeltaObject, token, retryAttempt: retryAttempt + 1, maxRetries, pollWaitInMs });
+	}
+
+	return data;
+}
+
+export async function waitUntilDeliveryEntityIsDeletedAsync({
+	fetchEntityUrl,
+	retryAttempt,
+	maxRetries,
+	pollWaitInMs,
+}: {
+	readonly pollWaitInMs: number;
+	readonly fetchEntityUrl: string;
+	readonly retryAttempt: number;
+	readonly maxRetries: number;
+}): Promise<void> {
+	if (retryAttempt >= maxRetries) {
+		return;
+	}
+
+	try {
+		const response = await httpService.requestAsync({
+			url: fetchEntityUrl,
+			body: null,
+			method: 'GET',
+		});
+
+		if (response.adapterResponse.isValidResponse) {
+			// if response is valid, it means the deleted entity has not been propagated to delivery API yet
+			// so we wait & try again
+			await waitAsync(pollWaitInMs);
+			return await waitUntilDeliveryEntityIsDeletedAsync({ fetchEntityUrl, retryAttempt: retryAttempt + 1, maxRetries, pollWaitInMs });
+		}
+	} catch (error) {
+		if (isKontent404Error(error)) {
+			// if entity is not found, it means it has been deleted
+			return;
+		}
+
+		throw error;
+	}
+}
 async function renameLanguageAsync(language: SharedEntityData): Promise<void> {
 	await httpService.requestAsync<
 		SharedEntityData,
@@ -63,7 +144,7 @@ async function renameLanguageAsync(language: SharedEntityData): Promise<void> {
 			value: string;
 		}[]
 	>({
-		url: config.urls.language(language.codename),
+		url: config.mapiUrls.language(language.codename),
 		body: [
 			{
 				op: 'replace',
@@ -77,7 +158,7 @@ async function renameLanguageAsync(language: SharedEntityData): Promise<void> {
 
 async function createTaxonomyAsync(taxonomy: SharedEntityData): Promise<void> {
 	await httpService.requestAsync<SharedEntityData, SharedEntityData & { terms: [] }>({
-		url: config.urls.taxonomies,
+		url: config.mapiUrls.taxonomies,
 		body: {
 			codename: taxonomy.codename,
 			name: taxonomy.name,
@@ -94,7 +175,7 @@ async function createContentTypeAsync(type: SharedEntityData, element: ElementCh
 			readonly elements: readonly ElementData[];
 		}
 	>({
-		url: config.urls.contentTypes,
+		url: config.mapiUrls.contentTypes,
 		body: {
 			codename: type.codename,
 			name: type.name,
@@ -110,12 +191,26 @@ async function createContentTypeAsync(type: SharedEntityData, element: ElementCh
 	});
 }
 
-async function deleteEntityAsync(url: string): Promise<void> {
+function waitAsync(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function deleteEntityAndWaitUntilPropagatedToDeliveryApiAsync({
+	deleteUrl,
+	deliveryGetUrl,
+}: { readonly deleteUrl: string; readonly deliveryGetUrl: string }): Promise<void> {
 	await skip404ErrorsAsync(async () => {
 		await httpService.requestAsync<SharedEntityData, null>({
-			url: url,
+			url: deleteUrl,
 			body: null,
 			method: 'DELETE',
+		});
+
+		await waitUntilDeliveryEntityIsDeletedAsync({
+			fetchEntityUrl: deliveryGetUrl,
+			maxRetries: 20,
+			pollWaitInMs: 500,
+			retryAttempt: 0,
 		});
 	});
 }
@@ -134,7 +229,7 @@ async function createContentItemAndVariantAsync(
 			};
 		}
 	>({
-		url: config.urls.contentItems,
+		url: config.mapiUrls.contentItems,
 		body: {
 			codename: item.codename,
 			name: item.name,
@@ -146,7 +241,7 @@ async function createContentItemAndVariantAsync(
 	});
 
 	await httpService.requestAsync<null, LanguageVariantData>({
-		url: config.urls.languageVariant(item.codename, language.codename),
+		url: config.mapiUrls.languageVariant(item.codename, language.codename),
 		body: {
 			elements: [
 				{
@@ -161,7 +256,7 @@ async function createContentItemAndVariantAsync(
 	});
 
 	await httpService.requestAsync<null, null>({
-		url: config.urls.publish(item.codename, language.codename),
+		url: config.mapiUrls.publish(item.codename, language.codename),
 		body: null,
 		method: 'PUT',
 	});
