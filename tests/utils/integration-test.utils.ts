@@ -1,4 +1,4 @@
-import { getDefaultHttpService, isKontent404Error } from '@kontent-ai/core-sdk';
+import { getDefaultHttpService, isKontent404Error, tryCatchAsync } from '@kontent-ai/core-sdk';
 import type { SyncClient, SyncClientTypes, SyncQueryPayload, SyncResponse } from '../../lib/public_api.js';
 import { getIntegrationTestConfig } from '../integration-tests.config.js';
 
@@ -113,7 +113,7 @@ export async function waitUntilDeliveryEntityIsDeletedAsync({
 		return;
 	}
 
-	try {
+	const { error, success } = await tryCatchAsync(async () => {
 		const response = await httpService.requestAsync({
 			url: fetchEntityUrl,
 			body: null,
@@ -126,13 +126,15 @@ export async function waitUntilDeliveryEntityIsDeletedAsync({
 			await waitAsync(pollWaitInMs);
 			return await waitUntilDeliveryEntityIsDeletedAsync({ fetchEntityUrl, retryAttempt: retryAttempt + 1, maxRetries, pollWaitInMs });
 		}
-	} catch (error) {
-		if (isKontent404Error(error)) {
-			// if entity is not found, it means it has been deleted
-			return;
-		}
+	});
 
-		throw error;
+	if (success) {
+		return;
+	}
+
+	if (isKontent404Error(error)) {
+		// if entity is not found, it means it has been deleted
+		return;
 	}
 }
 async function renameLanguageAsync(language: SharedEntityData): Promise<void> {
@@ -263,13 +265,15 @@ async function createContentItemAndVariantAsync(
 }
 
 async function skip404ErrorsAsync<T>(fn: () => Promise<T>): Promise<T | undefined> {
-	try {
-		return await fn();
-	} catch (error) {
-		if (isKontent404Error(error)) {
-			return undefined;
-		}
+	const { error, success, data } = await tryCatchAsync(fn);
 
-		throw error;
+	if (success) {
+		return data;
 	}
+
+	if (isKontent404Error(error)) {
+		return undefined;
+	}
+
+	throw error;
 }
