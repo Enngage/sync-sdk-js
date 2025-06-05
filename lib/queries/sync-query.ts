@@ -1,28 +1,38 @@
-import type { BaseQuery, EmptyObject, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from '../models/core.models.js';
-import type { ContentItemDeltaObject, ContentTypeDeltaObject, LanguageDeltaObject, TaxonomyDeltaObject } from '../models/synchronization.models.js';
+import z from 'zod/v4';
+import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from '../models/core.models.js';
+import type { EmptyObject, Override, Prettify } from '../models/utility-models.js';
+import {
+	type ContentItemDeltaObject,
+	type ContentTypeDeltaObject,
+	type LanguageDeltaObject,
+	type TaxonomyDeltaObject,
+	contentItemDeltaObjectSchema,
+	contentTypeDeltaObjectSchema,
+	languageDeltaObjectSchema,
+	taxonomyDeltaObjectSchema,
+} from '../schemas/synchronization.schemas.js';
 import { getSyncEndpointUrl, requestAsync } from '../utils/query.utils.js';
 
-export type SyncQueryPayload<TSyncApiTypes extends SyncClientTypes> = {
-	/**
-	 * The list of content items that have been changed or deleted.
-	 */
-	readonly items: readonly ContentItemDeltaObject<TSyncApiTypes>[];
+export const syncQueryPayloadSchema = z.readonly(
+	z.object({
+		items: z.array(contentItemDeltaObjectSchema),
+		types: z.array(contentTypeDeltaObjectSchema),
+		languages: z.array(languageDeltaObjectSchema),
+		taxonomies: z.array(taxonomyDeltaObjectSchema),
+	}),
+);
 
-	/**
-	 * The list of content types that have been changed or deleted.
-	 */
-	readonly types: readonly ContentTypeDeltaObject<TSyncApiTypes>[];
-
-	/**
-	 * The list of languages that have been changed or deleted.
-	 */
-	readonly languages: readonly LanguageDeltaObject<TSyncApiTypes>[];
-
-	/**
-	 * The list of taxonomies that have been changed or deleted.
-	 */
-	readonly taxonomies: readonly TaxonomyDeltaObject<TSyncApiTypes>[];
-};
+export type SyncQueryPayload<TSyncApiTypes extends SyncClientTypes> = Prettify<
+	Override<
+		z.infer<typeof syncQueryPayloadSchema>,
+		{
+			readonly taxonomies: readonly TaxonomyDeltaObject<TSyncApiTypes>[];
+			readonly items: readonly ContentItemDeltaObject<TSyncApiTypes>[];
+			readonly types: readonly ContentTypeDeltaObject<TSyncApiTypes>[];
+			readonly languages: readonly LanguageDeltaObject<TSyncApiTypes>[];
+		}
+	>
+>;
 
 export type SyncQuery<TSyncApiTypes extends SyncClientTypes> = BaseQuery<SyncQueryPayload<TSyncApiTypes>>;
 

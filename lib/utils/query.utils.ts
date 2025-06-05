@@ -1,5 +1,6 @@
 import { type Header, type HttpResponse, type HttpService, type JsonValue, getDefaultHttpService } from '@kontent-ai/core-sdk';
-import type { ApiMode, EmptyObject, SyncClientConfig, SyncHeaderNames, SyncResponse } from '../models/core.models.js';
+import type { ApiMode, SyncClientConfig, SyncHeaderNames, SyncResponse } from '../models/core.models.js';
+import type { EmptyObject } from '../models/utility-models.js';
 
 export async function requestAsync<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob, TExtraMetadata = EmptyObject>({
 	config,

@@ -3,7 +3,7 @@
  */
 export { getSyncClient } from './client/sync-client.js';
 export type { SyncClient, SyncClientConfig, SyncClientTypes, SyncResponse, SyncResponseMeta } from './models/core.models.js';
-export type * from './models/synchronization.models.js';
+export type * from './schemas/synchronization.schemas.js';
 
 /*
  * Queries

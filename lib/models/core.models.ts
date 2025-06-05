@@ -80,15 +80,27 @@ export type SyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> 
 
 export type SyncHeaderNames = 'X-Continuation';
 
-export type EmptyObject = Record<string, never>;
-
 export type GetSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
+	/**
+	 * Use publicly available API for requests.
+	 */
 	publicApi: () => {
 		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
 	};
+	/**
+	 * Use preview API for requests.
+	 *
+	 * Requires a delivery API key with preview access.
+	 */
 	previewApi: (deliveryApiKey: string) => {
 		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
 	};
+
+	/**
+	 * Use secure API for requests.
+	 *
+	 * Requires a delivery API key with secure access.
+	 */
 	secureApi: (deliveryApiKey: string) => {
 		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
 	};

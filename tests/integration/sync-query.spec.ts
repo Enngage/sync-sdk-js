@@ -1,6 +1,12 @@
 import { describe, expect, it, suite } from 'vitest';
-import { z } from 'zod/v4';
-import { getSyncClient } from '../../lib/public_api.js';
+import { getSyncClient } from '../../lib/client/sync-client.js';
+import { syncQueryPayloadSchema } from '../../lib/queries/sync-query.js';
+import {
+	contentItemDeltaObjectSchema,
+	contentTypeDeltaObjectSchema,
+	languageDeltaObjectSchema,
+	taxonomyDeltaObjectSchema,
+} from '../../lib/schemas/synchronization.schemas.js';
 import { getIntegrationTestConfig } from '../integration-tests.config.js';
 import { pollSyncApiAsync, prepareEnvironmentAsync, processChangesForIntegrationTestAsync } from '../utils/integration-test.utils.js';
 
@@ -10,14 +16,21 @@ describe('Sync query', async () => {
 	const config = getIntegrationTestConfig();
 	const client = getSyncClient(config.env.id).publicApi().create({ baseUrl: config.env.syncBaseUrl });
 	const syncData = getSyncData();
-	const validationSchemas = getSchemas(syncData);
 	const pollWaitInMs: number = 500;
 	const maxRetries: number = 20;
 
 	await prepareEnvironmentAsync(syncData);
 
 	// Get initial continuation token after preparing environment & waiting until Delivery API changes are propagated
-	const token = (await client.init().toPromise()).meta.continuationToken;
+	const response = await client.init().toPromise();
+
+	const token = response.meta.continuationToken;
+
+	it('Response payload should match schema', async () => {
+		const parseResult = await syncQueryPayloadSchema.safeParseAsync(response.payload);
+		expect(parseResult.error).toBeUndefined();
+		expect(parseResult.success).toBeTruthy();
+	});
 
 	await processChangesForIntegrationTestAsync(syncData);
 
@@ -32,7 +45,7 @@ describe('Sync query', async () => {
 		});
 
 		it('Response payload should match schema', async () => {
-			const parseResult = await validationSchemas.typeDeltaObject.safeParseAsync(deltaTypeObject);
+			const parseResult = await contentTypeDeltaObjectSchema.safeParseAsync(deltaTypeObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
 		});
@@ -49,7 +62,7 @@ describe('Sync query', async () => {
 		});
 
 		it('Response payload should match schema', async () => {
-			const parseResult = await validationSchemas.taxonomyDeltaObject.safeParseAsync(deltaTaxonomyObject);
+			const parseResult = await taxonomyDeltaObjectSchema.safeParseAsync(deltaTaxonomyObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
 		});
@@ -66,7 +79,7 @@ describe('Sync query', async () => {
 		});
 
 		it('Response payload should match schema', async () => {
-			const parseResult = await validationSchemas.itemDeltaObject.safeParseAsync(deltaItemObject);
+			const parseResult = await contentItemDeltaObjectSchema.safeParseAsync(deltaItemObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
 		});
@@ -83,7 +96,7 @@ describe('Sync query', async () => {
 		});
 
 		it('Response payload should match schema', async () => {
-			const parseResult = await validationSchemas.languageDeltaObject.safeParseAsync(deltaLanguageObject);
+			const parseResult = await languageDeltaObjectSchema.safeParseAsync(deltaLanguageObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
 		});
@@ -111,68 +124,5 @@ function getSyncData(): IntegrationSyncData {
 			name: `Integration taxonomy (${timestamp})`,
 		},
 		element: { type: 'text', name: 'Text element', codename: 'text_el', value: 'Elem value' },
-	};
-}
-
-function getSchemas(syncData: IntegrationSyncData): {
-	readonly typeDeltaObject: z.ZodObject;
-	readonly taxonomyDeltaObject: z.ZodObject;
-	readonly itemDeltaObject: z.ZodObject;
-	readonly languageDeltaObject: z.ZodObject;
-} {
-	return {
-		typeDeltaObject: z.strictObject({
-			change_type: z.literal('changed'),
-			timestamp: z.string(),
-			data: z.strictObject({
-				system: z.strictObject({
-					name: z.literal(syncData.type.name),
-					id: z.string(),
-					codename: z.literal(syncData.type.codename),
-					last_modified: z.string(),
-				}),
-			}),
-		}),
-		taxonomyDeltaObject: z.strictObject({
-			change_type: z.literal('changed'),
-			timestamp: z.string(),
-			data: z.strictObject({
-				system: z.strictObject({
-					name: z.literal(syncData.taxonomy.name),
-					id: z.string(),
-					codename: z.literal(syncData.taxonomy.codename),
-					last_modified: z.string(),
-				}),
-			}),
-		}),
-		itemDeltaObject: z.strictObject({
-			change_type: z.literal('changed'),
-			timestamp: z.string(),
-			data: z.strictObject({
-				system: z.strictObject({
-					name: z.literal(syncData.item.name),
-					id: z.string(),
-					codename: z.literal(syncData.item.codename),
-					last_modified: z.string(),
-					language: z.literal(syncData.language.codename),
-					type: z.literal(syncData.type.codename),
-					collection: z.string(),
-					sitemap_locations: z.array(z.string()),
-					workflow: z.string(),
-					workflow_step: z.string(),
-				}),
-			}),
-		}),
-		languageDeltaObject: z.strictObject({
-			change_type: z.literal('changed'),
-			timestamp: z.string(),
-			data: z.strictObject({
-				system: z.strictObject({
-					name: z.literal(syncData.language.name),
-					id: z.string(),
-					codename: z.literal(syncData.language.codename),
-				}),
-			}),
-		}),
 	};
 }

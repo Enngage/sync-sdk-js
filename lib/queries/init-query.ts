@@ -1,26 +1,19 @@
+import { z } from 'zod/v4';
 import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from '../models/core.models.js';
 import { extractContinuationToken, getSyncEndpointUrl, requestAsync } from '../utils/query.utils.js';
 
-export type InitQueryPayload = {
-	/**
-	 * Always empty array in init query
-	 */
-	readonly items: readonly [];
-	/**
-	 * Always empty array in init query
-	 */
-	readonly types: readonly [];
-	/**
-	 * Always empty array in init query
-	 */
-	readonly languages: readonly [];
-	/**
-	 * Always empty array in init query
-	 */
-	readonly taxonomies: readonly [];
-};
-
 type InitQueryMetadata = { readonly continuationToken: string };
+
+export const initQueryPayloadSchema = z.readonly(
+	z.object({
+		items: z.array(z.never()),
+		types: z.array(z.never()),
+		languages: z.array(z.never()),
+		taxonomies: z.array(z.never()),
+	}),
+);
+
+export type InitQueryPayload = z.infer<typeof initQueryPayloadSchema>;
 
 export type InitQuery = BaseQuery<InitQueryPayload, InitQueryMetadata>;
 
