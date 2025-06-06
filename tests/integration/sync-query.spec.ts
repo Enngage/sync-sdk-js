@@ -14,7 +14,9 @@ type IntegrationSyncData = Parameters<typeof processChangesForIntegrationTestAsy
 
 describe('Sync query', async () => {
 	const config = getIntegrationTestConfig();
-	const client = getSyncClient(config.env.id).publicApi().create({ baseUrl: config.env.syncBaseUrl });
+	const client = getSyncClient(config.env.id).publicApi().create({
+		baseUrl: config.env.syncBaseUrl,
+	});
 	const syncData = getSyncData();
 	const pollWaitInMs: number = 500;
 	const maxRetries: number = 20;

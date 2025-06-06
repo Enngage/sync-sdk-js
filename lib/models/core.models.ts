@@ -1,4 +1,4 @@
-import type { AdapterResponse, HttpService, RetryStrategyOptions } from '@kontent-ai/core-sdk';
+import { type AdapterResponse, type CoreSdkError, type HttpService, type RetryStrategyOptions, isCoreSdkError } from '@kontent-ai/core-sdk';
 import type { InitQuery } from '../queries/init-query.js';
 import type { SyncQuery } from '../queries/sync-query.js';
 
@@ -69,6 +69,19 @@ export type SyncClientConfig = {
 	 * If provided, it will override the default base URL based on selected API mode.
 	 */
 	readonly baseUrl?: string;
+
+	/**
+	 * Configuration for response validation.
+	 */
+	readonly responseValidation?: {
+		/**
+		 * When enabled, the response payload will be validated against the expected Zod schema from which the types
+		 * this library are based on. This ensures that you are working with the correct data types.
+		 *
+		 * @default false
+		 */
+		readonly enable: boolean;
+	};
 };
 
 export type SyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
@@ -80,30 +93,16 @@ export type SyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> 
 
 export type SyncHeaderNames = 'X-Continuation';
 
-export type GetSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
-	/**
-	 * Use publicly available API for requests.
-	 */
-	publicApi: () => {
-		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
-	};
-	/**
-	 * Use preview API for requests.
-	 *
-	 * Requires a delivery API key with preview access.
-	 */
-	previewApi: (deliveryApiKey: string) => {
-		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
-	};
-
-	/**
-	 * Use secure API for requests.
-	 *
-	 * Requires a delivery API key with secure access.
-	 */
-	secureApi: (deliveryApiKey: string) => {
-		create: (options?: CreateSyncClientOptions) => SyncClient<TSyncApiTypes>;
-	};
-};
-
 export type CreateSyncClientOptions = Omit<SyncClientConfig, 'environmentId' | 'apiMode' | 'deliveryApiKey'>;
+
+export class SyncSdkError extends Error {
+	readonly error: unknown;
+	readonly coreSdkError: CoreSdkError | undefined;
+
+	constructor(message: string, error: unknown) {
+		super(message);
+
+		if (isCoreSdkError(error)) {
+		}
+	}
+}

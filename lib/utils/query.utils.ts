@@ -1,17 +1,24 @@
 import { type Header, type HttpResponse, type HttpService, type JsonValue, getDefaultHttpService } from '@kontent-ai/core-sdk';
-import type { ApiMode, SyncClientConfig, SyncHeaderNames, SyncResponse } from '../models/core.models.js';
+import type { ZodType } from 'zod/v4';
+import { type ApiMode, type SyncClientConfig, type SyncHeaderNames, type SyncResponse, SyncSdkError } from '../models/core.models.js';
 import type { EmptyObject } from '../models/utility-models.js';
 
 export async function requestAsync<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob, TExtraMetadata = EmptyObject>({
 	config,
 	func,
 	extraMetadata,
+	zodSchema,
 }: {
 	readonly extraMetadata: (response: HttpResponse<TResponseData, TBodyData>) => TExtraMetadata;
 	readonly func: (httpService: HttpService) => Promise<HttpResponse<TResponseData, TBodyData>>;
 	readonly config: SyncClientConfig;
+	readonly zodSchema: ZodType<TResponseData>;
 }): Promise<SyncResponse<TResponseData, TExtraMetadata>> {
 	const response = await func(getHttpService(config));
+
+	if (config.responseValidation?.enable) {
+		await validateResponseAsync(response.data, zodSchema);
+	}
 
 	return {
 		payload: response.data,
@@ -22,6 +29,14 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 			...extraMetadata(response),
 		},
 	};
+}
+
+async function validateResponseAsync<TResponseData extends JsonValue | Blob>(data: TResponseData, zodSchema: ZodType<TResponseData>): Promise<void> {
+	const validateResult = await zodSchema.safeParseAsync(data);
+
+	if (!validateResult.success) {
+		throw new SyncSdkError('Response data does not match the expected schema', validateResult.error);
+	}
 }
 
 export function getSyncEndpointUrl({

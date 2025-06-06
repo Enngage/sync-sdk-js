@@ -1,15 +1,11 @@
-import type { ExecuteRequestOptions, Header, JsonValue } from '@kontent-ai/core-sdk';
+import type { ExecuteRequestOptions, JsonValue } from '@kontent-ai/core-sdk';
 import { describe, expect, it } from 'vitest';
-import type { SyncHeaderNames } from '../../lib/models/core.models.js';
 import { getSyncClient } from '../../lib/public_api.js';
+import { fakeXContinuationTokenHeader } from '../integration-tests.config.js';
 
 describe('Custom http service', () => {
 	it('Custom http service should be used', async () => {
 		const fakeResponse = { result: 'ok' };
-		const xContinuationTokenHeader: Header = {
-			name: 'X-Continuation' satisfies SyncHeaderNames,
-			value: 'x',
-		};
 
 		const initResponse = await getSyncClient('x')
 			.publicApi()
@@ -24,7 +20,7 @@ describe('Custom http service', () => {
 							adapterResponse: {
 								isValidResponse: true,
 								statusText: 'Ok',
-								responseHeaders: [xContinuationTokenHeader],
+								responseHeaders: [fakeXContinuationTokenHeader],
 								status: 200,
 								toJsonAsync: async () => fakeResponse,
 								toBlobAsync: async () => null,
@@ -43,6 +39,6 @@ describe('Custom http service', () => {
 			.toPromise();
 
 		expect(initResponse.payload).toStrictEqual(fakeResponse);
-		expect(initResponse.meta.continuationToken).toStrictEqual(xContinuationTokenHeader.value);
+		expect(initResponse.meta.continuationToken).toStrictEqual(fakeXContinuationTokenHeader.value);
 	});
 });

@@ -1,11 +1,8 @@
 import z from 'zod/v4';
 import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from '../models/core.models.js';
 import type { EmptyObject, Override, Prettify } from '../models/utility-models.js';
+import type { ContentItemDeltaObject, ContentTypeDeltaObject, LanguageDeltaObject, TaxonomyDeltaObject } from '../schemas/synchronization.models.js';
 import {
-	type ContentItemDeltaObject,
-	type ContentTypeDeltaObject,
-	type LanguageDeltaObject,
-	type TaxonomyDeltaObject,
 	contentItemDeltaObjectSchema,
 	contentTypeDeltaObjectSchema,
 	languageDeltaObjectSchema,
@@ -48,6 +45,7 @@ export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(
 			return await requestAsync<SyncQueryPayload<TSyncApiTypes>, null, EmptyObject>({
 				config,
 				extraMetadata: () => ({}),
+				zodSchema: syncQueryPayloadSchema,
 				func: async (httpService) => {
 					return await httpService.requestAsync({
 						url: url,

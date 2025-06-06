@@ -1,3 +1,5 @@
+import type { Header } from '@kontent-ai/core-sdk';
+import type { SyncHeaderNames } from '../lib/models/core.models.js';
 import { getEndpointUrl } from '../lib/utils/query.utils.js';
 import { getEnvironmentOptionalValue, getEnvironmentRequiredValue } from './utils/test.utils.js';
 
@@ -74,7 +76,12 @@ export function getIntegrationTestConfig() {
 	};
 }
 
-export function getMapiEndpointUrl({
+export const fakeXContinuationTokenHeader: Header = {
+	name: 'X-Continuation' satisfies SyncHeaderNames,
+	value: 'x',
+};
+
+function getMapiEndpointUrl({
 	environmentId,
 	path,
 }: {
@@ -88,7 +95,7 @@ export function getMapiEndpointUrl({
 	});
 }
 
-export function getDeliveryEndpointUrl({
+function getDeliveryEndpointUrl({
 	environmentId,
 	path,
 }: {

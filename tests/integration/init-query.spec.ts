@@ -5,7 +5,9 @@ import { getIntegrationTestConfig } from '../integration-tests.config.js';
 
 describe('Init query', async () => {
 	const config = getIntegrationTestConfig();
-	const client = getSyncClient(config.env.id).publicApi().create({ baseUrl: config.env.syncBaseUrl });
+	const client = getSyncClient(config.env.id).publicApi().create({
+		baseUrl: config.env.syncBaseUrl,
+	});
 
 	const response = await client.init().toPromise();
 
