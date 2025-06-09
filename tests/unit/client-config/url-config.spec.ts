@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getSyncClient } from "../../lib/public_api.js";
+import { getSyncClient } from "../../../lib/public_api.js";
 
 describe("Verifies config setup", () => {
 	it("Endpoint should use preview base url", () => {

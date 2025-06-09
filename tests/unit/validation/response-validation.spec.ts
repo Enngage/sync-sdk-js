@@ -1,7 +1,7 @@
 import { type HttpService, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
 import { describe, test } from "vitest";
-import { type InitQueryPayload, type SyncSdkError, getSyncClient } from "../../lib/public_api.js";
-import { fakeXContinuationTokenHeader } from "../integration-tests.config.js";
+import { type InitQueryPayload, type SyncSdkError, getSyncClient } from "../../../lib/public_api.js";
+import { fakeXContinuationTokenHeader } from "../../integration-tests.config.js";
 
 describe("Response validation", () => {
 	test("Error should be returned when response does not match schema and validation is enabled", async ({ expect }) => {
