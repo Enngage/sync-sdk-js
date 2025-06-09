@@ -1,6 +1,8 @@
-import { type AdapterResponse, type CoreSdkError, type HttpService, type RetryStrategyOptions, isCoreSdkError } from '@kontent-ai/core-sdk';
+import type { AdapterResponse, CoreSdkError, HttpService, RetryStrategyOptions } from '@kontent-ai/core-sdk';
+import type { ZodError } from 'zod/v4';
 import type { InitQuery } from '../queries/init-query.js';
 import type { SyncQuery } from '../queries/sync-query.js';
+import type { Result } from './utility-models.js';
 
 export type SyncClientTypes = {
 	readonly languageCodenames: string;
@@ -22,7 +24,7 @@ export type SyncResponse<TPayload, TExtraMetadata = unknown> = {
 
 export type BaseQuery<TPayload, TExtraData = unknown> = {
 	toUrl(): string;
-	toPromise(): Promise<SyncResponse<TPayload, TExtraData>>;
+	toPromise(): Promise<Result<SyncResponse<TPayload, TExtraData>>>;
 };
 
 export type ApiMode = 'public' | 'preview' | 'secure';
@@ -95,14 +97,10 @@ export type SyncHeaderNames = 'X-Continuation';
 
 export type CreateSyncClientOptions = Omit<SyncClientConfig, 'environmentId' | 'apiMode' | 'deliveryApiKey'>;
 
-export class SyncSdkError extends Error {
-	readonly error: unknown;
-	readonly coreSdkError: CoreSdkError | undefined;
-
-	constructor(message: string, error: unknown) {
-		super(message);
-
-		if (isCoreSdkError(error)) {
-		}
-	}
-}
+export type SyncSdkError =
+	| ({
+			readonly errorType: 'validation';
+	  } & ZodError)
+	| ({
+			readonly errorType: 'core';
+	  } & CoreSdkError);

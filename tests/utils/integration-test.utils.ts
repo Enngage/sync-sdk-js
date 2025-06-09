@@ -1,4 +1,4 @@
-import { getDefaultHttpService, isKontent404Error, tryCatchAsync } from '@kontent-ai/core-sdk';
+import { type HttpResponse, type JsonValue, getDefaultHttpService } from '@kontent-ai/core-sdk';
 import type { SyncClient, SyncClientTypes, SyncQueryPayload, SyncResponse } from '../../lib/public_api.js';
 import { getIntegrationTestConfig } from '../integration-tests.config.js';
 
@@ -62,7 +62,6 @@ export async function processChangesForIntegrationTestAsync({
 	readonly taxonomy: SharedEntityData;
 }): Promise<void> {
 	await createContentTypeAsync(type, element);
-
 	await Promise.all([createTaxonomyAsync(taxonomy), renameLanguageAsync(language), createContentItemAndVariantAsync(item, type, language, element)]);
 }
 
@@ -85,7 +84,11 @@ export async function pollSyncApiAsync<T>({
 		return undefined;
 	}
 
-	const syncResponse = await client.sync(token).toPromise();
+	const { data: syncResponse, success } = await client.sync(token).toPromise();
+
+	if (!success) {
+		throw Error('Failed to get sync response. The request should always succeed.');
+	}
 
 	const data = await getDeltaObject(syncResponse);
 
@@ -113,30 +116,25 @@ export async function waitUntilDeliveryEntityIsDeletedAsync({
 		return;
 	}
 
-	const { error, success } = await tryCatchAsync(async () => {
-		const response = await httpService.requestAsync({
-			url: fetchEntityUrl,
-			body: null,
-			method: 'GET',
-		});
-
-		if (response.adapterResponse.isValidResponse) {
-			// if response is valid, it means the deleted entity has not been propagated to delivery API yet
-			// so we wait & try again
-			await waitAsync(pollWaitInMs);
-			return await waitUntilDeliveryEntityIsDeletedAsync({ fetchEntityUrl, retryAttempt: retryAttempt + 1, maxRetries, pollWaitInMs });
-		}
+	const { error, success } = await httpService.requestAsync({
+		url: fetchEntityUrl,
+		body: null,
+		method: 'GET',
 	});
 
 	if (success) {
-		return;
+		// if response is valid, it means the deleted entity is still available in delivery API
+		await waitAsync(pollWaitInMs);
+		return await waitUntilDeliveryEntityIsDeletedAsync({ fetchEntityUrl, retryAttempt: retryAttempt + 1, maxRetries, pollWaitInMs });
 	}
 
-	if (isKontent404Error(error)) {
+	if (error.details.type === 'invalidResponse' && error.details.status === 404) {
 		// if entity is not found, it means it has been deleted
 		return;
 	}
+	throw Error(`Failed to wait until entity is deleted: ${fetchEntityUrl}`);
 }
+
 async function renameLanguageAsync(language: SharedEntityData): Promise<void> {
 	await httpService.requestAsync<
 		SharedEntityData,
@@ -202,18 +200,18 @@ async function deleteEntityAndWaitUntilPropagatedToDeliveryApiAsync({
 	deliveryGetUrl,
 }: { readonly deleteUrl: string; readonly deliveryGetUrl: string }): Promise<void> {
 	await skip404ErrorsAsync(async () => {
-		await httpService.requestAsync<SharedEntityData, null>({
+		return await httpService.requestAsync<SharedEntityData, null>({
 			url: deleteUrl,
 			body: null,
 			method: 'DELETE',
 		});
+	});
 
-		await waitUntilDeliveryEntityIsDeletedAsync({
-			fetchEntityUrl: deliveryGetUrl,
-			maxRetries: 20,
-			pollWaitInMs: 500,
-			retryAttempt: 0,
-		});
+	await waitUntilDeliveryEntityIsDeletedAsync({
+		fetchEntityUrl: deliveryGetUrl,
+		maxRetries: 20,
+		pollWaitInMs: 500,
+		retryAttempt: 0,
 	});
 }
 
@@ -264,14 +262,14 @@ async function createContentItemAndVariantAsync(
 	});
 }
 
-async function skip404ErrorsAsync<T>(fn: () => Promise<T>): Promise<T | undefined> {
-	const { error, success, data } = await tryCatchAsync(fn);
+async function skip404ErrorsAsync<T extends JsonValue>(fn: () => Promise<HttpResponse<T, null>>): Promise<T | undefined> {
+	const { error, success, data } = await fn();
 
 	if (success) {
-		return data;
+		return data.responseData;
 	}
 
-	if (isKontent404Error(error)) {
+	if (error.details.type === 'invalidResponse' && error.details.status === 404) {
 		return undefined;
 	}
 

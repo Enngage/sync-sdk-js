@@ -1,16 +1,19 @@
-/**
- * Improves the type readability by flattening the type.
- */
-export type Prettify<T> = {
-	[K in keyof T]: T[K];
-} & {};
+import type { SyncSdkError } from './core.models.js';
 
 /**
- * Override selected properties of a type. Uses Omit to remove the properties and then adds the new properties.
+ * A nomadic result type that represents a success or failure of an operation.
+ *
+ * Ensures that consumers of this library handle both success and failure cases.
  */
-export type Override<Type, NewType extends { [key in keyof Type]?: NewType[key] }> = Omit<Type, keyof NewType> & NewType;
+export type Result<TData> = Success<TData> | Failure<SyncSdkError>;
 
-/**
- * Represents an empty object type.
- */
-export type EmptyObject = Record<string, never>;
+type Success<TData> = {
+	readonly success: true;
+	readonly data: TData;
+	readonly error?: never;
+};
+type Failure<TError> = {
+	readonly success: false;
+	readonly data?: never;
+	readonly error: TError;
+};

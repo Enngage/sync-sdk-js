@@ -1,6 +1,6 @@
+import type { Override, Prettify } from '@kontent-ai/core-sdk';
 import type { z } from 'zod/v4';
 import type { SyncClientTypes } from '../models/core.models.js';
-import type { Override, Prettify } from '../models/utility-models.js';
 import type {
 	contentItemDeltaObjectSchema,
 	contentItemSystemSchema,

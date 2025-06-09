@@ -24,12 +24,12 @@ describe('Sync query', async () => {
 	await prepareEnvironmentAsync(syncData);
 
 	// Get initial continuation token after preparing environment & waiting until Delivery API changes are propagated
-	const response = await client.init().toPromise();
+	const { data } = await client.init().toPromise();
 
-	const token = response.meta.continuationToken;
+	const token = data?.meta.continuationToken ?? 'n/a';
 
 	it('Response payload should match schema', async () => {
-		const parseResult = await syncQueryPayloadSchema.safeParseAsync(response.payload);
+		const parseResult = await syncQueryPayloadSchema.safeParseAsync(data?.payload);
 		expect(parseResult.error).toBeUndefined();
 		expect(parseResult.success).toBeTruthy();
 	});

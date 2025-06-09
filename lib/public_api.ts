@@ -12,6 +12,7 @@ export type {
 	SyncResponseMeta,
 	SyncSdkError,
 } from './models/core.models.js';
+export type { Result } from './models/utility-models.js';
 
 /**
  * Sync response models

@@ -1,44 +1,46 @@
 import { type HttpService, type JsonValue, getDefaultHttpService } from '@kontent-ai/core-sdk';
 import { describe, test } from 'vitest';
-import { SyncSdkError } from '../../lib/models/core.models.js';
-import { type InitQueryPayload, getSyncClient } from '../../lib/public_api.js';
+import { type InitQueryPayload, type SyncSdkError, getSyncClient } from '../../lib/public_api.js';
 import { fakeXContinuationTokenHeader } from '../integration-tests.config.js';
 
 describe('Response validation', () => {
-	test('Error should be thrown when response does not match schema and validation is enabled', async ({ expect }) => {
-		await expect(async () => {
-			await getSyncClient('x')
-				.publicApi()
-				.create({
-					responseValidation: {
-						enable: true,
-					},
-					httpService: getHttpServiceWithJsonResponse({ result: 'ok' }),
-				})
-				.init()
-				.toPromise();
-		}).rejects.toThrowError(SyncSdkError);
+	test('Error should be returned when response does not match schema and validation is enabled', async ({ expect }) => {
+		const { success, error } = await getSyncClient('x')
+			.publicApi()
+			.create({
+				responseValidation: {
+					enable: true,
+				},
+				httpService: getHttpServiceWithJsonResponse({ result: 'ok' }),
+			})
+			.init()
+			.toPromise();
+
+		expect(success).toBe(false);
+		expect(error).toBeDefined();
+		expect(error?.errorType).toStrictEqual<Pick<SyncSdkError, 'errorType'>['errorType']>('validation');
 	});
 
-	test('Error should not be thrown when response does not match schema but validation is disabled', async ({ expect }) => {
-		await expect(
-			getSyncClient('x')
-				.publicApi()
-				.create({
-					responseValidation: {
-						enable: true,
-					},
+	test('Error should not be returned when response does not match schema but validation is disabled', async ({ expect }) => {
+		const { success, error } = await getSyncClient('x')
+			.publicApi()
+			.create({
+				responseValidation: {
+					enable: true,
+				},
 
-					httpService: getHttpServiceWithJsonResponse({
-						items: [],
-						languages: [],
-						taxonomies: [],
-						types: [],
-					} satisfies InitQueryPayload),
-				})
-				.init()
-				.toPromise(),
-		).resolves.toBeDefined();
+				httpService: getHttpServiceWithJsonResponse({
+					items: [],
+					languages: [],
+					taxonomies: [],
+					types: [],
+				} satisfies InitQueryPayload),
+			})
+			.init()
+			.toPromise();
+
+		expect(success).toBe(true);
+		expect(error).toBeUndefined();
 	});
 });
 

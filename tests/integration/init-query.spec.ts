@@ -9,33 +9,33 @@ describe('Init query', async () => {
 		baseUrl: config.env.syncBaseUrl,
 	});
 
-	const response = await client.init().toPromise();
+	const { data } = await client.init().toPromise();
 
 	it('Response payload should match schema', async () => {
-		const parseResult = await initQueryPayloadSchema.safeParseAsync(response.payload);
+		const parseResult = await initQueryPayloadSchema.safeParseAsync(data?.payload);
 		expect(parseResult.error).toBeUndefined();
 		expect(parseResult.success).toBeTruthy();
 	});
 
 	it('Response should contain empty array of items', () => {
-		expect(response.payload.items).toEqual([]);
+		expect(data?.payload.items).toEqual([]);
 	});
 
 	it('Response should contain empty array of taxonomies', () => {
-		expect(response.payload.taxonomies).toEqual([]);
+		expect(data?.payload.taxonomies).toEqual([]);
 	});
 
 	it('Response should contain empty array of types', () => {
-		expect(response.payload.types).toEqual([]);
+		expect(data?.payload.types).toEqual([]);
 	});
 
 	it('Response should contain empty array of languages', () => {
-		expect(response.payload.languages).toEqual([]);
+		expect(data?.payload.languages).toEqual([]);
 	});
 
 	it('Response should contain continuation token', () => {
-		expect(response.meta.continuationToken).toBeDefined();
-		expect(typeof response.meta.continuationToken).toBe('string');
-		expect(response.meta.continuationToken?.length).toBeGreaterThan(0);
+		expect(data?.meta.continuationToken).toBeDefined();
+		expect(typeof data?.meta.continuationToken).toBe('string');
+		expect(data?.meta.continuationToken?.length).toBeGreaterThan(0);
 	});
 });
