@@ -1,6 +1,6 @@
-import type { Override, Prettify } from '@kontent-ai/core-sdk';
-import type { z } from 'zod/v4';
-import type { SyncClientTypes } from '../models/core.models.js';
+import type { Override, Prettify } from "@kontent-ai/core-sdk";
+import type { z } from "zod/v4";
+import type { SyncClientTypes } from "../models/core.models.js";
 import type {
 	contentItemDeltaObjectSchema,
 	contentItemSystemSchema,
@@ -10,17 +10,17 @@ import type {
 	languageSystemSchema,
 	taxonomyDeltaObjectSchema,
 	taxonomySystemSchema,
-} from './synchronization.schemas.js';
+} from "./synchronization.schemas.js";
 
 export type ContentItemSystem<TSyncApiTypes extends SyncClientTypes> = Prettify<
 	Override<
 		z.infer<typeof contentItemSystemSchema>,
 		{
-			readonly collection: TSyncApiTypes['collectionCodenames'];
-			readonly type: TSyncApiTypes['typeCodenames'];
-			readonly language: TSyncApiTypes['languageCodenames'];
-			readonly workflow?: TSyncApiTypes['workflowCodenames'];
-			readonly workflow_step?: TSyncApiTypes['workflowStepCodenames'];
+			readonly collection: TSyncApiTypes["collectionCodenames"];
+			readonly type: TSyncApiTypes["typeCodenames"];
+			readonly language: TSyncApiTypes["languageCodenames"];
+			readonly workflow?: TSyncApiTypes["workflowCodenames"];
+			readonly workflow_step?: TSyncApiTypes["workflowStepCodenames"];
 		}
 	>
 >;
@@ -29,7 +29,7 @@ export type ContentTypeSystem<TSyncApiTypes extends SyncClientTypes> = Prettify<
 	Override<
 		z.infer<typeof contentTypeSystemSchema>,
 		{
-			readonly codename: TSyncApiTypes['typeCodenames'];
+			readonly codename: TSyncApiTypes["typeCodenames"];
 		}
 	>
 >;
@@ -38,7 +38,7 @@ export type LanguageSystem<TSyncApiTypes extends SyncClientTypes> = Prettify<
 	Override<
 		z.infer<typeof languageSystemSchema>,
 		{
-			readonly codename: TSyncApiTypes['languageCodenames'];
+			readonly codename: TSyncApiTypes["languageCodenames"];
 		}
 	>
 >;
@@ -47,7 +47,7 @@ export type TaxonomySystem<TSyncApiTypes extends SyncClientTypes> = Prettify<
 	Override<
 		z.infer<typeof taxonomySystemSchema>,
 		{
-			readonly codename: TSyncApiTypes['taxonomyCodenames'];
+			readonly codename: TSyncApiTypes["taxonomyCodenames"];
 		}
 	>
 >;

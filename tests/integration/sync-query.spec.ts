@@ -1,18 +1,18 @@
-import { describe, expect, it, suite } from 'vitest';
-import { getSyncClient } from '../../lib/client/sync-client.js';
-import { syncQueryPayloadSchema } from '../../lib/queries/sync-query.js';
+import { describe, expect, it, suite } from "vitest";
+import { getSyncClient } from "../../lib/client/sync-client.js";
+import { syncQueryPayloadSchema } from "../../lib/queries/sync-query.js";
 import {
 	contentItemDeltaObjectSchema,
 	contentTypeDeltaObjectSchema,
 	languageDeltaObjectSchema,
 	taxonomyDeltaObjectSchema,
-} from '../../lib/schemas/synchronization.schemas.js';
-import { getIntegrationTestConfig } from '../integration-tests.config.js';
-import { pollSyncApiAsync, prepareEnvironmentAsync, processChangesForIntegrationTestAsync } from '../utils/integration-test.utils.js';
+} from "../../lib/schemas/synchronization.schemas.js";
+import { getIntegrationTestConfig } from "../integration-tests.config.js";
+import { pollSyncApiAsync, prepareEnvironmentAsync, processChangesForIntegrationTestAsync } from "../utils/integration-test.utils.js";
 
 type IntegrationSyncData = Parameters<typeof processChangesForIntegrationTestAsync>[0];
 
-describe('Sync query', async () => {
+describe("Sync query", async () => {
 	const config = getIntegrationTestConfig();
 	const client = getSyncClient(config.env.id).publicApi().create({
 		baseUrl: config.env.syncBaseUrl,
@@ -26,9 +26,9 @@ describe('Sync query', async () => {
 	// Get initial continuation token after preparing environment & waiting until Delivery API changes are propagated
 	const { data } = await client.init().toPromise();
 
-	const token = data?.meta.continuationToken ?? 'n/a';
+	const token = data?.meta.continuationToken ?? "n/a";
 
-	it('Response payload should match schema', async () => {
+	it("Response payload should match schema", async () => {
 		const parseResult = await syncQueryPayloadSchema.safeParseAsync(data?.payload);
 		expect(parseResult.error).toBeUndefined();
 		expect(parseResult.success).toBeTruthy();
@@ -36,7 +36,7 @@ describe('Sync query', async () => {
 
 	await processChangesForIntegrationTestAsync(syncData);
 
-	suite.concurrent('Type delta object', async () => {
+	suite.concurrent("Type delta object", async () => {
 		const deltaTypeObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -46,14 +46,14 @@ describe('Sync query', async () => {
 			pollWaitInMs,
 		});
 
-		it('Response payload should match schema', async () => {
+		it("Response payload should match schema", async () => {
 			const parseResult = await contentTypeDeltaObjectSchema.safeParseAsync(deltaTypeObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
 		});
 	});
 
-	suite.concurrent('Taxonomy delta object', async () => {
+	suite.concurrent("Taxonomy delta object", async () => {
 		const deltaTaxonomyObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -63,14 +63,14 @@ describe('Sync query', async () => {
 			pollWaitInMs,
 		});
 
-		it('Response payload should match schema', async () => {
+		it("Response payload should match schema", async () => {
 			const parseResult = await taxonomyDeltaObjectSchema.safeParseAsync(deltaTaxonomyObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
 		});
 	});
 
-	suite.concurrent('Item delta object', async () => {
+	suite.concurrent("Item delta object", async () => {
 		const deltaItemObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -80,14 +80,14 @@ describe('Sync query', async () => {
 			pollWaitInMs,
 		});
 
-		it('Response payload should match schema', async () => {
+		it("Response payload should match schema", async () => {
 			const parseResult = await contentItemDeltaObjectSchema.safeParseAsync(deltaItemObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
 		});
 	});
 
-	suite.concurrent('Language delta object', async () => {
+	suite.concurrent("Language delta object", async () => {
 		const deltaLanguageObject = await pollSyncApiAsync({
 			client,
 			token,
@@ -97,7 +97,7 @@ describe('Sync query', async () => {
 			pollWaitInMs,
 		});
 
-		it('Response payload should match schema', async () => {
+		it("Response payload should match schema", async () => {
 			const parseResult = await languageDeltaObjectSchema.safeParseAsync(deltaLanguageObject);
 			expect(parseResult.error).toBeUndefined();
 			expect(parseResult.success).toBeTruthy();
@@ -106,25 +106,25 @@ describe('Sync query', async () => {
 });
 
 function getSyncData(): IntegrationSyncData {
-	const timestamp = new Date().getTime();
+	const timestamp = Date.now();
 
 	return {
 		item: {
-			codename: 'integration_test_item',
+			codename: "integration_test_item",
 			name: `Integration item (${timestamp})`,
 		},
 		type: {
-			codename: 'integration_test_type',
+			codename: "integration_test_type",
 			name: `Integration type (${timestamp})`,
 		},
 		language: {
-			codename: 'default',
+			codename: "default",
 			name: `Lang (${timestamp})`,
 		},
 		taxonomy: {
-			codename: 'integration_test_taxonomy',
+			codename: "integration_test_taxonomy",
 			name: `Integration taxonomy (${timestamp})`,
 		},
-		element: { type: 'text', name: 'Text element', codename: 'text_el', value: 'Elem value' },
+		element: { type: "text", name: "Text element", codename: "text_el", value: "Elem value" },
 	};
 }

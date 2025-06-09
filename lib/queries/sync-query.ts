@@ -1,14 +1,14 @@
-import type { EmptyObject, Override, Prettify } from '@kontent-ai/core-sdk';
-import z from 'zod/v4';
-import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from '../models/core.models.js';
-import type { ContentItemDeltaObject, ContentTypeDeltaObject, LanguageDeltaObject, TaxonomyDeltaObject } from '../schemas/synchronization.models.js';
+import type { EmptyObject, Override, Prettify } from "@kontent-ai/core-sdk";
+import z from "zod/v4";
+import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from "../models/core.models.js";
+import type { ContentItemDeltaObject, ContentTypeDeltaObject, LanguageDeltaObject, TaxonomyDeltaObject } from "../schemas/synchronization.models.js";
 import {
 	contentItemDeltaObjectSchema,
 	contentTypeDeltaObjectSchema,
 	languageDeltaObjectSchema,
 	taxonomyDeltaObjectSchema,
-} from '../schemas/synchronization.schemas.js';
-import { getSyncEndpointUrl, requestAsync } from '../utils/query.utils.js';
+} from "../schemas/synchronization.schemas.js";
+import { getSyncEndpointUrl, requestAsync } from "../utils/query.utils.js";
 
 export const syncQueryPayloadSchema = z.readonly(
 	z.object({
@@ -36,8 +36,8 @@ export type SyncQuery<TSyncApiTypes extends SyncClientTypes> = BaseQuery<SyncQue
 export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(
 	config: SyncClientConfig,
 	continuationToken: string,
-): ReturnType<SyncClient<TSyncApiTypes>['sync']> {
-	const url = getSyncEndpointUrl({ path: '/sync', ...config });
+): ReturnType<SyncClient<TSyncApiTypes>["sync"]> {
+	const url = getSyncEndpointUrl({ path: "/sync", ...config });
 
 	return {
 		toUrl: () => url,
@@ -50,10 +50,10 @@ export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(
 					return await httpService.requestAsync({
 						url: url,
 						body: null,
-						method: 'GET',
+						method: "GET",
 						requestHeaders: [
 							{
-								name: 'X-Continuation' satisfies SyncHeaderNames,
+								name: "X-Continuation" satisfies SyncHeaderNames,
 								value: continuationToken,
 							},
 						],

@@ -1,12 +1,12 @@
-import { type EmptyObject, type Header, type HttpResponse, type HttpService, type JsonValue, getDefaultHttpService } from '@kontent-ai/core-sdk';
-import type { ZodError, ZodType } from 'zod/v4';
-import type { ApiMode, SyncClientConfig, SyncHeaderNames, SyncResponse } from '../models/core.models.js';
-import type { Result } from '../models/utility-models.js';
+import { type EmptyObject, type Header, type HttpResponse, type HttpService, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
+import type { ZodError, ZodType } from "zod/v4";
+import type { ApiMode, SyncClientConfig, SyncHeaderNames, SyncResponse } from "../models/core.models.js";
+import type { Result } from "../models/utility-models.js";
 
 type ResponseInnerData<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob> = Extract<
 	HttpResponse<TResponseData, TBodyData>,
 	{ success: true }
->['data'];
+>["data"];
 
 export async function requestAsync<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob, TExtraMetadata = EmptyObject>({
 	config,
@@ -25,7 +25,7 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 		return {
 			success: false,
 			error: {
-				errorType: 'core',
+				errorType: "core",
 				...error,
 			},
 		};
@@ -37,7 +37,7 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 			return {
 				success: false,
 				error: {
-					errorType: 'validation',
+					errorType: "validation",
 					...validationError,
 				},
 			};
@@ -90,8 +90,12 @@ export function getSyncEndpointUrl({
 	path,
 	baseUrl,
 	apiMode,
-}: { readonly path: string } & Pick<SyncClientConfig, 'baseUrl' | 'environmentId' | 'apiMode'>): string {
-	return getEndpointUrl({ environmentId, path, baseUrl: baseUrl ?? getDefaultBaseUrlForApiMode(apiMode) });
+}: { readonly path: string } & Pick<SyncClientConfig, "baseUrl" | "environmentId" | "apiMode">): string {
+	return getEndpointUrl({
+		environmentId,
+		path,
+		baseUrl: baseUrl ?? getDefaultBaseUrlForApiMode(apiMode),
+	});
 }
 
 export function getEndpointUrl({ environmentId, path, baseUrl }: { readonly environmentId: string; readonly path: string; readonly baseUrl: string }): string {
@@ -99,11 +103,11 @@ export function getEndpointUrl({ environmentId, path, baseUrl }: { readonly envi
 }
 
 export function removeDuplicateSlashes(path: string): string {
-	return path.replace(/\/+/g, '/');
+	return path.replace(/\/+/g, "/");
 }
 
 export function extractContinuationToken(responseHeaders: readonly Header[]): string | undefined {
-	return responseHeaders.find((header) => header.name.toLowerCase() === ('X-Continuation' satisfies SyncHeaderNames).toLowerCase())?.value;
+	return responseHeaders.find((header) => header.name.toLowerCase() === ("X-Continuation" satisfies SyncHeaderNames).toLowerCase())?.value;
 }
 
 function getHttpService(config: SyncClientConfig) {
@@ -111,9 +115,9 @@ function getHttpService(config: SyncClientConfig) {
 }
 
 function getDefaultBaseUrlForApiMode(apiMode: ApiMode): string {
-	if (apiMode === 'preview') {
-		return 'https://preview-deliver.kontent.ai';
+	if (apiMode === "preview") {
+		return "https://preview-deliver.kontent.ai";
 	}
 
-	return 'https://deliver.kontent.ai';
+	return "https://deliver.kontent.ai";
 }

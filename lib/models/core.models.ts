@@ -1,8 +1,8 @@
-import type { AdapterResponse, CoreSdkError, HttpService, RetryStrategyOptions } from '@kontent-ai/core-sdk';
-import type { ZodError } from 'zod/v4';
-import type { InitQuery } from '../queries/init-query.js';
-import type { SyncQuery } from '../queries/sync-query.js';
-import type { Result } from './utility-models.js';
+import type { AdapterResponse, CoreSdkError, HttpService, RetryStrategyOptions } from "@kontent-ai/core-sdk";
+import type { ZodError } from "zod/v4";
+import type { InitQuery } from "../queries/init-query.js";
+import type { SyncQuery } from "../queries/sync-query.js";
+import type { Result } from "./utility-models.js";
 
 export type SyncClientTypes = {
 	readonly languageCodenames: string;
@@ -13,7 +13,7 @@ export type SyncClientTypes = {
 	readonly taxonomyCodenames: string;
 };
 
-export type SyncResponseMeta<TExtraMetadata = unknown> = Pick<AdapterResponse, 'status' | 'responseHeaders'> & {
+export type SyncResponseMeta<TExtraMetadata = unknown> = Pick<AdapterResponse, "status" | "responseHeaders"> & {
 	readonly continuationToken?: string;
 } & TExtraMetadata;
 
@@ -27,7 +27,7 @@ export type BaseQuery<TPayload, TExtraData = unknown> = {
 	toPromise(): Promise<Result<SyncResponse<TPayload, TExtraData>>>;
 };
 
-export type ApiMode = 'public' | 'preview' | 'secure';
+export type ApiMode = "public" | "preview" | "secure";
 
 export type SyncClientConfig = {
 	/**
@@ -93,14 +93,14 @@ export type SyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> 
 	sync(continuationToken: string): SyncQuery<TSyncApiTypes>;
 };
 
-export type SyncHeaderNames = 'X-Continuation';
+export type SyncHeaderNames = "X-Continuation";
 
-export type CreateSyncClientOptions = Omit<SyncClientConfig, 'environmentId' | 'apiMode' | 'deliveryApiKey'>;
+export type CreateSyncClientOptions = Omit<SyncClientConfig, "environmentId" | "apiMode" | "deliveryApiKey">;
 
 export type SyncSdkError =
 	| ({
-			readonly errorType: 'validation';
+			readonly errorType: "validation";
 	  } & ZodError)
 	| ({
-			readonly errorType: 'core';
+			readonly errorType: "core";
 	  } & CoreSdkError);

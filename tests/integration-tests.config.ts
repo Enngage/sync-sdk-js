@@ -1,14 +1,14 @@
-import type { Header } from '@kontent-ai/core-sdk';
-import type { SyncHeaderNames } from '../lib/models/core.models.js';
-import { getEndpointUrl } from '../lib/utils/query.utils.js';
-import { getEnvironmentOptionalValue, getEnvironmentRequiredValue } from './utils/test.utils.js';
+import type { Header } from "@kontent-ai/core-sdk";
+import type { SyncHeaderNames } from "../lib/models/core.models.js";
+import { getEndpointUrl } from "../lib/utils/query.utils.js";
+import { getEnvironmentOptionalValue, getEnvironmentRequiredValue } from "./utils/test.utils.js";
 
 const integrationEnv = {
-	id: getEnvironmentRequiredValue('INTEGRATION_ENVIRONMENT_ID'),
-	mapiKey: getEnvironmentRequiredValue('INTEGRATION_MANAGEMENT_API_KEY'),
-	mapiBaseUrl: getEnvironmentOptionalValue('INTEGRATION_MANAGEMENT_BASE_URL'),
-	deliveryBaseUrl: getEnvironmentOptionalValue('INTEGRATION_DELIVERY_BASE_URL'),
-	syncBaseUrl: getEnvironmentOptionalValue('INTEGRATION_DELIVERY_SYNC_BASE_URL'),
+	id: getEnvironmentRequiredValue("INTEGRATION_ENVIRONMENT_ID"),
+	mapiKey: getEnvironmentRequiredValue("INTEGRATION_MANAGEMENT_API_KEY"),
+	mapiBaseUrl: getEnvironmentOptionalValue("INTEGRATION_MANAGEMENT_BASE_URL"),
+	deliveryBaseUrl: getEnvironmentOptionalValue("INTEGRATION_DELIVERY_BASE_URL"),
+	syncBaseUrl: getEnvironmentOptionalValue("INTEGRATION_DELIVERY_SYNC_BASE_URL"),
 } as const;
 
 export function getIntegrationTestConfig() {
@@ -45,15 +45,15 @@ export function getIntegrationTestConfig() {
 			publish: (itemCodename: string, languageCodename: string) => `${languageVariantUrl(itemCodename, languageCodename)}/publish`,
 			contentTypes: getMapiEndpointUrl({
 				environmentId: integrationEnv.id,
-				path: '/types',
+				path: "/types",
 			}),
 			taxonomies: getMapiEndpointUrl({
 				environmentId: integrationEnv.id,
-				path: '/taxonomies',
+				path: "/taxonomies",
 			}),
 			contentItems: getMapiEndpointUrl({
 				environmentId: integrationEnv.id,
-				path: '/items',
+				path: "/items",
 			}),
 		},
 		deliveryUrls: {
@@ -77,8 +77,8 @@ export function getIntegrationTestConfig() {
 }
 
 export const fakeXContinuationTokenHeader: Header = {
-	name: 'X-Continuation' satisfies SyncHeaderNames,
-	value: 'x',
+	name: "X-Continuation" satisfies SyncHeaderNames,
+	value: "x",
 };
 
 function getMapiEndpointUrl({
@@ -91,7 +91,7 @@ function getMapiEndpointUrl({
 	return getEndpointUrl({
 		environmentId,
 		path,
-		baseUrl: integrationEnv.mapiBaseUrl ?? 'https://manage.kontent.ai/v2/projects/',
+		baseUrl: integrationEnv.mapiBaseUrl ?? "https://manage.kontent.ai/v2/projects/",
 	});
 }
 
@@ -105,6 +105,6 @@ function getDeliveryEndpointUrl({
 	return getEndpointUrl({
 		environmentId,
 		path,
-		baseUrl: integrationEnv.deliveryBaseUrl ?? 'https://delivery.kontent.ai/',
+		baseUrl: integrationEnv.deliveryBaseUrl ?? "https://delivery.kontent.ai/",
 	});
 }

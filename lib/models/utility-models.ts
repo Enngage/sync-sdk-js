@@ -1,4 +1,4 @@
-import type { SyncSdkError } from './core.models.js';
+import type { SyncSdkError } from "./core.models.js";
 
 /**
  * A nomadic result type that represents a success or failure of an operation.

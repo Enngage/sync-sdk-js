@@ -1,6 +1,6 @@
-import { z } from 'zod/v4';
+import { z } from "zod/v4";
 
-const changeTypeSchema = z.enum(['changed', 'deleted']);
+const changeTypeSchema = z.enum(["changed", "deleted"]);
 
 const baseDeltaObjectSchema = z.object({
 	change_type: changeTypeSchema,

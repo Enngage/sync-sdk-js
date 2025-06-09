@@ -1,6 +1,6 @@
-import { type HttpResponse, type JsonValue, getDefaultHttpService } from '@kontent-ai/core-sdk';
-import type { SyncClient, SyncClientTypes, SyncQueryPayload, SyncResponse } from '../../lib/public_api.js';
-import { getIntegrationTestConfig } from '../integration-tests.config.js';
+import { type HttpResponse, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
+import type { SyncClient, SyncClientTypes, SyncQueryPayload, SyncResponse } from "../../lib/public_api.js";
+import { getIntegrationTestConfig } from "../integration-tests.config.js";
 
 type ElementChangeEntityData = { readonly value: string } & ElementData;
 
@@ -9,7 +9,7 @@ type SharedEntityData = {
 	readonly name: string;
 };
 
-type ElementData = { readonly type: 'text' } & SharedEntityData;
+type ElementData = { readonly type: "text" } & SharedEntityData;
 
 type LanguageVariantData = {
 	readonly elements: readonly {
@@ -24,7 +24,7 @@ const config = getIntegrationTestConfig();
 const httpService = getDefaultHttpService({
 	requestHeaders: [
 		{
-			name: 'Authorization',
+			name: "Authorization",
 			value: `Bearer ${config.env.mapiKey}`,
 		},
 	],
@@ -87,7 +87,7 @@ export async function pollSyncApiAsync<T>({
 	const { data: syncResponse, success } = await client.sync(token).toPromise();
 
 	if (!success) {
-		throw Error('Failed to get sync response. The request should always succeed.');
+		throw new Error("Failed to get sync response. The request should always succeed.");
 	}
 
 	const data = await getDeltaObject(syncResponse);
@@ -95,7 +95,14 @@ export async function pollSyncApiAsync<T>({
 	if (!data) {
 		// if data is not available, wait & try again
 		await waitAsync(pollWaitInMs);
-		return await pollSyncApiAsync({ client, getDeltaObject, token, retryAttempt: retryAttempt + 1, maxRetries, pollWaitInMs });
+		return await pollSyncApiAsync({
+			client,
+			getDeltaObject,
+			token,
+			retryAttempt: retryAttempt + 1,
+			maxRetries,
+			pollWaitInMs,
+		});
 	}
 
 	return data;
@@ -119,40 +126,45 @@ export async function waitUntilDeliveryEntityIsDeletedAsync({
 	const { error, success } = await httpService.requestAsync({
 		url: fetchEntityUrl,
 		body: null,
-		method: 'GET',
+		method: "GET",
 	});
 
 	if (success) {
 		// if response is valid, it means the deleted entity is still available in delivery API
 		await waitAsync(pollWaitInMs);
-		return await waitUntilDeliveryEntityIsDeletedAsync({ fetchEntityUrl, retryAttempt: retryAttempt + 1, maxRetries, pollWaitInMs });
+		return await waitUntilDeliveryEntityIsDeletedAsync({
+			fetchEntityUrl,
+			retryAttempt: retryAttempt + 1,
+			maxRetries,
+			pollWaitInMs,
+		});
 	}
 
-	if (error.details.type === 'invalidResponse' && error.details.status === 404) {
+	if (error.details.type === "invalidResponse" && error.details.status === 404) {
 		// if entity is not found, it means it has been deleted
 		return;
 	}
-	throw Error(`Failed to wait until entity is deleted: ${fetchEntityUrl}`);
+	throw new Error(`Failed to wait until entity is deleted: ${fetchEntityUrl}`);
 }
 
 async function renameLanguageAsync(language: SharedEntityData): Promise<void> {
 	await httpService.requestAsync<
 		SharedEntityData,
 		{
-			op: 'replace';
-			property_name: 'name';
+			op: "replace";
+			property_name: "name";
 			value: string;
 		}[]
 	>({
 		url: config.mapiUrls.language(language.codename),
 		body: [
 			{
-				op: 'replace',
-				property_name: 'name',
+				op: "replace",
+				property_name: "name",
 				value: language.name,
 			},
 		],
-		method: 'PATCH',
+		method: "PATCH",
 	});
 }
 
@@ -164,7 +176,7 @@ async function createTaxonomyAsync(taxonomy: SharedEntityData): Promise<void> {
 			name: taxonomy.name,
 			terms: [],
 		},
-		method: 'POST',
+		method: "POST",
 	});
 }
 
@@ -187,7 +199,7 @@ async function createContentTypeAsync(type: SharedEntityData, element: ElementCh
 				},
 			],
 		},
-		method: 'POST',
+		method: "POST",
 	});
 }
 
@@ -203,7 +215,7 @@ async function deleteEntityAndWaitUntilPropagatedToDeliveryApiAsync({
 		return await httpService.requestAsync<SharedEntityData, null>({
 			url: deleteUrl,
 			body: null,
-			method: 'DELETE',
+			method: "DELETE",
 		});
 	});
 
@@ -237,7 +249,7 @@ async function createContentItemAndVariantAsync(
 				codename: type.codename,
 			},
 		},
-		method: 'POST',
+		method: "POST",
 	});
 
 	await httpService.requestAsync<null, LanguageVariantData>({
@@ -252,13 +264,13 @@ async function createContentItemAndVariantAsync(
 				},
 			],
 		},
-		method: 'PUT',
+		method: "PUT",
 	});
 
 	await httpService.requestAsync<null, null>({
 		url: config.mapiUrls.publish(item.codename, language.codename),
 		body: null,
-		method: 'PUT',
+		method: "PUT",
 	});
 }
 
@@ -269,9 +281,9 @@ async function skip404ErrorsAsync<T extends JsonValue>(fn: () => Promise<HttpRes
 		return data.responseData;
 	}
 
-	if (error.details.type === 'invalidResponse' && error.details.status === 404) {
+	if (error.details.type === "invalidResponse" && error.details.status === 404) {
 		return undefined;
 	}
 
-	throw error;
+	throw new Error("Failed to skip 404 errors", { cause: error });
 }

@@ -1,6 +1,6 @@
-import type { CreateSyncClientOptions, SyncClient, SyncClientConfig, SyncClientTypes } from '../models/core.models.js';
-import { getInitQuery } from '../queries/init-query.js';
-import { getSyncQuery } from '../queries/sync-query.js';
+import type { CreateSyncClientOptions, SyncClient, SyncClientConfig, SyncClientTypes } from "../models/core.models.js";
+import { getInitQuery } from "../queries/init-query.js";
+import { getSyncQuery } from "../queries/sync-query.js";
 
 type GetSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
 	/**
@@ -31,18 +31,18 @@ type GetSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
 export function getSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes>(environmentId: string): GetSyncClient<TSyncApiTypes> {
 	return {
 		publicApi: () => {
-			return withClient<TSyncApiTypes>({ apiMode: 'public', environmentId });
+			return withClient<TSyncApiTypes>({ apiMode: "public", environmentId });
 		},
 		previewApi: (deliveryApiKey: string) => {
-			return withClient<TSyncApiTypes>({ apiMode: 'preview', environmentId, deliveryApiKey });
+			return withClient<TSyncApiTypes>({ apiMode: "preview", environmentId, deliveryApiKey });
 		},
 		secureApi: (deliveryApiKey: string) => {
-			return withClient<TSyncApiTypes>({ apiMode: 'secure', environmentId, deliveryApiKey });
+			return withClient<TSyncApiTypes>({ apiMode: "secure", environmentId, deliveryApiKey });
 		},
 	};
 }
 
-function withClient<TSyncApiTypes extends SyncClientTypes>(requiredConfig: Pick<SyncClientConfig, 'environmentId' | 'apiMode' | 'deliveryApiKey'>) {
+function withClient<TSyncApiTypes extends SyncClientTypes>(requiredConfig: Pick<SyncClientConfig, "environmentId" | "apiMode" | "deliveryApiKey">) {
 	return {
 		create: (options?: CreateSyncClientOptions): SyncClient<TSyncApiTypes> => createSyncClient<TSyncApiTypes>({ ...requiredConfig, ...options }),
 	};
