@@ -56,14 +56,6 @@ export default defineConfig([
 			"@typescript-eslint/prefer-optional-chain": "error",
 			"@typescript-eslint/prefer-reduce-type-parameter": "error",
 			"@typescript-eslint/prefer-ts-expect-error": "error",
-			"no-restricted-syntax": [
-				"error",
-				{
-					selector: "MemberExpression[object.name='console'][property.name=/^(log|warn|error|info|trace)$/]",
-					message:
-						"Don't log into the console directly. Use one of the functions from the log.ts file (logInfo, logWarning, logError) to ensure provided --logLevel is respected.",
-				},
-			],
 		},
 	},
 ]);

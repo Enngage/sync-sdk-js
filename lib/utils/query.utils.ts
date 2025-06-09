@@ -111,7 +111,7 @@ export function extractContinuationToken(responseHeaders: readonly Header[]): st
 }
 
 function getHttpService(config: SyncClientConfig) {
-	return config.httpService ?? getDefaultHttpService({ retryStrategy: config.retryStrategy });
+	return config.httpService ?? getDefaultHttpService();
 }
 
 function getDefaultBaseUrlForApiMode(apiMode: ApiMode): string {

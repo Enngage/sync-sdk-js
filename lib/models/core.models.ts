@@ -1,4 +1,4 @@
-import type { AdapterResponse, CoreSdkError, HttpService, RetryStrategyOptions } from "@kontent-ai/core-sdk";
+import type { AdapterResponse, CoreSdkError, HttpService } from "@kontent-ai/core-sdk";
 import type { ZodError } from "zod/v4";
 import type { InitQuery } from "../queries/init-query.js";
 import type { SyncQuery } from "../queries/sync-query.js";
@@ -59,11 +59,6 @@ export type SyncClientConfig = {
 	 * See https://github.com/kontent-ai/core-sdk-js for more information regarding the HTTP service customization.
 	 */
 	readonly httpService?: HttpService;
-
-	/**
-	 * The retry strategy to use for the request. If not provided, the default retry strategy will be used.
-	 */
-	readonly retryStrategy?: RetryStrategyOptions;
 
 	/**
 	 * The base URL to use for the request. If not provided, the default base URL will be used.
