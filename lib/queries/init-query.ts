@@ -25,6 +25,7 @@ export function getInitQuery<TSyncApiTypes extends SyncClientTypes>(config: Sync
 		toPromise: async () => {
 			return await requestAsync<InitQueryPayload, null, InitQueryMetadata>({
 				config,
+				url,
 				zodSchema: initQueryPayloadSchema,
 				extraMetadata: (response) => {
 					const continuationToken = extractContinuationToken(response.adapterResponse.responseHeaders);

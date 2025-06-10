@@ -84,7 +84,7 @@ export async function pollSyncApiAsync<T>({
 		return undefined;
 	}
 
-	const { data: syncResponse, success } = await client.sync(token).toPromise();
+	const { response: syncResponse, success } = await client.sync(token).toPromise();
 
 	if (!success) {
 		throw new Error("Failed to get sync response. The request should always succeed.");

@@ -1,11 +1,12 @@
 import { type HttpService, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
 import { describe, test } from "vitest";
-import { type InitQueryPayload, type SyncSdkError, getSyncClient } from "../../../lib/public_api.js";
+import { ZodError } from "zod/v4";
+import { type InitQueryPayload, type SyncSdkErrorReason, getSyncClient } from "../../../lib/public_api.js";
 import { fakeXContinuationTokenHeader } from "../../integration-tests.config.js";
 
 describe("Response validation", () => {
 	test("Error should be returned when response does not match schema and validation is enabled", async ({ expect }) => {
-		const { success, error } = await getSyncClient("x")
+		const query = getSyncClient("x")
 			.publicApi()
 			.create({
 				responseValidation: {
@@ -13,12 +14,22 @@ describe("Response validation", () => {
 				},
 				httpService: getHttpServiceWithJsonResponse({ result: "ok" }),
 			})
-			.init()
-			.toPromise();
+			.init();
+
+		const { success, error } = await query.toPromise();
 
 		expect(success).toBe(false);
 		expect(error).toBeDefined();
-		expect(error?.errorType).toStrictEqual<Pick<SyncSdkError, "errorType">["errorType"]>("validation");
+		expect(error?.reason).toStrictEqual<SyncSdkErrorReason>("validationFailed");
+
+		if (error?.reason === "validationFailed") {
+			expect(error.url).toStrictEqual(query.toUrl());
+			expect(error.zodError).toBeInstanceOf(ZodError);
+			expect(error.message).toBeDefined();
+			expect(error.response).toBeDefined();
+		} else {
+			throw new Error(`Unexpected error reason '${error?.reason}'`);
+		}
 	});
 
 	test("Error should not be returned when response does not match schema but validation is disabled", async ({ expect }) => {

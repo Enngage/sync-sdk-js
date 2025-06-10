@@ -1,8 +1,8 @@
-import type { AdapterResponse, CoreSdkError, HttpService } from "@kontent-ai/core-sdk";
+import type { AdapterResponse, CoreSdkError, HttpResponse, HttpService, JsonValue } from "@kontent-ai/core-sdk";
 import type { ZodError } from "zod/v4";
 import type { InitQuery } from "../queries/init-query.js";
 import type { SyncQuery } from "../queries/sync-query.js";
-import type { Result } from "./utility-models.js";
+import type { QueryResult } from "./utility-models.js";
 
 export type SyncClientTypes = {
 	readonly languageCodenames: string;
@@ -24,7 +24,7 @@ export type SyncResponse<TPayload, TExtraMetadata = unknown> = {
 
 export type BaseQuery<TPayload, TExtraData = unknown> = {
 	toUrl(): string;
-	toPromise(): Promise<Result<SyncResponse<TPayload, TExtraData>>>;
+	toPromise(): Promise<QueryResult<SyncResponse<TPayload, TExtraData>>>;
 };
 
 export type ApiMode = "public" | "preview" | "secure";
@@ -92,10 +92,18 @@ export type SyncHeaderNames = "X-Continuation";
 
 export type CreateSyncClientOptions = Omit<SyncClientConfig, "environmentId" | "apiMode" | "deliveryApiKey">;
 
+export type SyncSdkErrorReason = Pick<SyncSdkError, "reason">["reason"];
+
 export type SyncSdkError =
-	| ({
-			readonly errorType: "validation";
-	  } & ZodError)
-	| ({
-			readonly errorType: "core";
-	  } & CoreSdkError);
+	| CoreSdkError
+	| (Pick<CoreSdkError, "message"> & {
+			readonly reason: "validationFailed";
+			readonly zodError: ZodError;
+			readonly response: ValidResponseData<JsonValue | Blob, JsonValue | Blob>;
+			readonly url: string;
+	  });
+
+export type ValidResponseData<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob> = Extract<
+	HttpResponse<TResponseData, TBodyData>,
+	{ readonly success: true }
+>["response"];

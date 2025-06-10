@@ -1,6 +1,6 @@
 import { getDefaultHttpService } from "@kontent-ai/core-sdk";
 import { describe, expect, it } from "vitest";
-import { type SyncSdkError, getSyncClient } from "../../../lib/public_api.js";
+import { type SyncSdkErrorReason, getSyncClient } from "../../../lib/public_api.js";
 
 describe("Retry strategy config", async () => {
 	const maxAttempts = 7;
@@ -43,16 +43,14 @@ describe("Retry strategy config", async () => {
 	it("Custom retry strategy should be used", () => {
 		expect(success).toBe(false);
 		expect(error).toBeDefined();
-		expect(error?.errorType).toStrictEqual<Pick<SyncSdkError, "errorType">["errorType"]>("core");
+		expect(error?.reason).toStrictEqual<SyncSdkErrorReason>("invalidResponse");
 
-		if (error?.errorType === "core") {
-			if (error.reason === "invalidResponse") {
-				expect(error.status).toStrictEqual(statusCode);
-				expect(error.retryAttempt).toStrictEqual(maxAttempts);
-				expect(error.statusText).toStrictEqual(statusText);
-			} else {
-				throw new Error(`Unexpected error reason '${error.reason}'`);
-			}
+		if (error?.reason === "invalidResponse") {
+			expect(error.status).toStrictEqual(statusCode);
+			expect(error.retryAttempt).toStrictEqual(maxAttempts);
+			expect(error.statusText).toStrictEqual(statusText);
+		} else {
+			throw new Error(`Unexpected error reason '${error?.reason}'`);
 		}
 	});
 });

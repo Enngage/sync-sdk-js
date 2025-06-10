@@ -1,33 +1,27 @@
 import { type EmptyObject, type Header, type HttpResponse, type HttpService, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
 import type { ZodError, ZodType } from "zod/v4";
-import type { ApiMode, SyncClientConfig, SyncHeaderNames, SyncResponse } from "../models/core.models.js";
-import type { Result } from "../models/utility-models.js";
-
-type ResponseInnerData<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob> = Extract<
-	HttpResponse<TResponseData, TBodyData>,
-	{ success: true }
->["response"];
+import type { ApiMode, SyncClientConfig, SyncHeaderNames, SyncResponse, ValidResponseData } from "../models/core.models.js";
+import type { QueryResult } from "../models/utility-models.js";
 
 export async function requestAsync<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob, TExtraMetadata = EmptyObject>({
 	config,
 	func,
+	url,
 	extraMetadata,
 	zodSchema,
 }: {
-	readonly extraMetadata: (response: ResponseInnerData<TResponseData, TBodyData>) => TExtraMetadata;
+	readonly extraMetadata: (response: ValidResponseData<TResponseData, TBodyData>) => TExtraMetadata;
 	readonly func: (httpService: HttpService) => Promise<HttpResponse<TResponseData, TBodyData>>;
 	readonly config: SyncClientConfig;
+	readonly url: string;
 	readonly zodSchema: ZodType<TResponseData>;
-}): Promise<Result<SyncResponse<TResponseData, TExtraMetadata>>> {
+}): Promise<QueryResult<SyncResponse<TResponseData, TExtraMetadata>>> {
 	const { success, response, error } = await func(getHttpService(config));
 
 	if (!success) {
 		return {
 			success: false,
-			error: {
-				errorType: "core",
-				...error,
-			},
+			error,
 		};
 	}
 
@@ -37,8 +31,11 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 			return {
 				success: false,
 				error: {
-					errorType: "validation",
-					...validationError,
+					message: `Failed to validate response schema for url '${url}'`,
+					reason: "validationFailed",
+					zodError: validationError,
+					response,
+					url,
 				},
 			};
 		}
@@ -46,7 +43,7 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 
 	return {
 		success: true,
-		data: {
+		response: {
 			payload: response.data,
 			meta: {
 				responseHeaders: response.adapterResponse.responseHeaders,

@@ -9,8 +9,9 @@ export type {
 	SyncResponse,
 	SyncResponseMeta,
 	SyncSdkError,
+	SyncSdkErrorReason,
 } from "./models/core.models.js";
-export type { Result } from "./models/utility-models.js";
+export type { QueryResult } from "./models/utility-models.js";
 
 /**
  * Sync response models

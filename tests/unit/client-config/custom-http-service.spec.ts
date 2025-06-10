@@ -43,8 +43,8 @@ describe("Custom http service", () => {
 			.init()
 			.toPromise();
 
-		expect(initResponse.data?.payload).toStrictEqual(fakeResponse);
-		expect(initResponse.data?.meta.continuationToken).toStrictEqual(fakeXContinuationTokenHeader.value);
+		expect(initResponse.response?.payload).toStrictEqual(fakeResponse);
+		expect(initResponse.response?.meta.continuationToken).toStrictEqual(fakeXContinuationTokenHeader.value);
 	});
 
 	test("Error should be thrown as is when custom code causes an exception", async ({ expect }) => {

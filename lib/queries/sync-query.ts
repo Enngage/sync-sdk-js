@@ -44,6 +44,7 @@ export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(
 		toPromise: async () => {
 			return await requestAsync<SyncQueryPayload<TSyncApiTypes>, null, EmptyObject>({
 				config,
+				url,
 				extraMetadata: () => ({}),
 				zodSchema: syncQueryPayloadSchema,
 				func: async (httpService) => {
