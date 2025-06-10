@@ -140,8 +140,8 @@ export async function waitUntilDeliveryEntityIsDeletedAsync({
 		});
 	}
 
-	if (error.details.type === "invalidResponse" && error.details.status === 404) {
-		// if entity is not found, it means it has been deleted
+	if (error.reason === "notFound") {
+		// if entity is not found, it means it has been deleted and the change propagation is complete
 		return;
 	}
 	throw new Error(`Failed to wait until entity is deleted: ${fetchEntityUrl}`);
@@ -275,13 +275,13 @@ async function createContentItemAndVariantAsync(
 }
 
 async function skip404ErrorsAsync<T extends JsonValue>(fn: () => Promise<HttpResponse<T, null>>): Promise<T | undefined> {
-	const { error, success, data } = await fn();
+	const { error, success, response } = await fn();
 
 	if (success) {
-		return data.responseData;
+		return response.data;
 	}
 
-	if (error.details.type === "invalidResponse" && error.details.status === 404) {
+	if (error.reason === "notFound") {
 		return undefined;
 	}
 

@@ -14,8 +14,8 @@ describe("Retry strategy config", async () => {
 					canRetryError: () => {
 						return true;
 					},
-					logRetryAttempt: () => {},
-					defaultDelayBetweenRequestsMs: 0,
+					logRetryAttempt: false,
+					getDelayBetweenRequestsMs: () => 0,
 					maxAttempts: maxAttempts,
 				},
 				adapter: {
@@ -46,12 +46,12 @@ describe("Retry strategy config", async () => {
 		expect(error?.errorType).toStrictEqual<Pick<SyncSdkError, "errorType">["errorType"]>("core");
 
 		if (error?.errorType === "core") {
-			if (error.details.type === "invalidResponse") {
-				expect(error.details.status).toStrictEqual(statusCode);
+			if (error.reason === "invalidResponse") {
+				expect(error.status).toStrictEqual(statusCode);
 				expect(error.retryAttempt).toStrictEqual(maxAttempts);
-				expect(error.details.statusText).toStrictEqual(statusText);
+				expect(error.statusText).toStrictEqual(statusText);
 			} else {
-				throw new Error(`Unexpected error type '${error.details.type}'`);
+				throw new Error(`Unexpected error reason '${error.reason}'`);
 			}
 		}
 	});

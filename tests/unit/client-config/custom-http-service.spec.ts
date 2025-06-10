@@ -16,8 +16,8 @@ describe("Custom http service", () => {
 					requestAsync: async <TResponseData extends JsonValue, TBodyData extends JsonValue>(opts: ExecuteRequestOptions<TBodyData>) => {
 						return await Promise.resolve({
 							success: true,
-							data: {
-								responseData: fakeResponse as JsonValue as TResponseData,
+							response: {
+								data: fakeResponse as JsonValue as TResponseData,
 								body: opts.body,
 								method: opts.method,
 								requestHeaders: opts.requestHeaders ?? [],

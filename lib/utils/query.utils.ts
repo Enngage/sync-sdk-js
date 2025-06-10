@@ -6,7 +6,7 @@ import type { Result } from "../models/utility-models.js";
 type ResponseInnerData<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob> = Extract<
 	HttpResponse<TResponseData, TBodyData>,
 	{ success: true }
->["data"];
+>["response"];
 
 export async function requestAsync<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob, TExtraMetadata = EmptyObject>({
 	config,
@@ -19,7 +19,7 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 	readonly config: SyncClientConfig;
 	readonly zodSchema: ZodType<TResponseData>;
 }): Promise<Result<SyncResponse<TResponseData, TExtraMetadata>>> {
-	const { success, data, error } = await func(getHttpService(config));
+	const { success, response, error } = await func(getHttpService(config));
 
 	if (!success) {
 		return {
@@ -32,7 +32,7 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 	}
 
 	if (config.responseValidation?.enable) {
-		const { isValid, error: validationError } = await validateResponseAsync(data.responseData, zodSchema);
+		const { isValid, error: validationError } = await validateResponseAsync(response.data, zodSchema);
 		if (!isValid) {
 			return {
 				success: false,
@@ -47,12 +47,12 @@ export async function requestAsync<TResponseData extends JsonValue | Blob, TBody
 	return {
 		success: true,
 		data: {
-			payload: data.responseData,
+			payload: response.data,
 			meta: {
-				responseHeaders: data.adapterResponse.responseHeaders,
-				status: data.adapterResponse.status,
-				continuationToken: extractContinuationToken(data.adapterResponse.responseHeaders),
-				...extraMetadata(data),
+				responseHeaders: response.adapterResponse.responseHeaders,
+				status: response.adapterResponse.status,
+				continuationToken: extractContinuationToken(response.adapterResponse.responseHeaders),
+				...extraMetadata(response),
 			},
 		},
 	};
