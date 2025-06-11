@@ -36,7 +36,7 @@
 	},
 	"dependencies": {
 		"@kontent-ai/core-sdk": "11.0.0-8",
-		"zod": "3.25.57"
+		"zod": "3.25.60"
 	},
 	"devDependencies": {
 		"@kontent-ai/biome-config": "0.4.0",
@@ -50,6 +50,6 @@
 		"typescript": "5.8.3",
 		"vitest": "3.2.3",
 		"dotenv-cli": "8.0.0",
-		"tsx": "4.19.4"
+		"tsx": "4.20.0"
 	}
 }
