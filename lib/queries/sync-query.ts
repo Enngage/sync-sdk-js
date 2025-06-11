@@ -1,7 +1,12 @@
 import type { EmptyObject, Override, Prettify } from "@kontent-ai/core-sdk";
 import z from "zod/v4";
 import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from "../models/core.models.js";
-import type { ContentItemDeltaObject, ContentTypeDeltaObject, LanguageDeltaObject, TaxonomyDeltaObject } from "../schemas/synchronization.models.js";
+import type {
+	ContentItemDeltaObject,
+	ContentTypeDeltaObject,
+	LanguageDeltaObject,
+	TaxonomyDeltaObject,
+} from "../schemas/synchronization.models.js";
 import {
 	contentItemDeltaObjectSchema,
 	contentTypeDeltaObjectSchema,

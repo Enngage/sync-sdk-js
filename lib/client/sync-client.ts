@@ -28,7 +28,9 @@ type GetSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
 	};
 };
 
-export function getSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes>(environmentId: string): GetSyncClient<TSyncApiTypes> {
+export function getSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes>(
+	environmentId: string,
+): GetSyncClient<TSyncApiTypes> {
 	return {
 		publicApi: () => {
 			return withClient<TSyncApiTypes>({ apiMode: "public", environmentId });
@@ -42,9 +44,12 @@ export function getSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClient
 	};
 }
 
-function withClient<TSyncApiTypes extends SyncClientTypes>(requiredConfig: Pick<SyncClientConfig, "environmentId" | "apiMode" | "deliveryApiKey">) {
+function withClient<TSyncApiTypes extends SyncClientTypes>(
+	requiredConfig: Pick<SyncClientConfig, "environmentId" | "apiMode" | "deliveryApiKey">,
+) {
 	return {
-		create: (options?: CreateSyncClientOptions): SyncClient<TSyncApiTypes> => createSyncClient<TSyncApiTypes>({ ...requiredConfig, ...options }),
+		create: (options?: CreateSyncClientOptions): SyncClient<TSyncApiTypes> =>
+			createSyncClient<TSyncApiTypes>({ ...requiredConfig, ...options }),
 	};
 }
 

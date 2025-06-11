@@ -30,7 +30,11 @@ const httpService = getDefaultHttpService({
 	],
 });
 
-export async function prepareEnvironmentAsync({ item, type, taxonomy }: Parameters<typeof processChangesForIntegrationTestAsync>[0]): Promise<void> {
+export async function prepareEnvironmentAsync({
+	item,
+	type,
+	taxonomy,
+}: Parameters<typeof processChangesForIntegrationTestAsync>[0]): Promise<void> {
 	await Promise.all([
 		deleteEntityAndWaitUntilPropagatedToDeliveryApiAsync({
 			deleteUrl: config.mapiUrls.taxonomy(taxonomy.codename),
@@ -62,7 +66,11 @@ export async function processChangesForIntegrationTestAsync({
 	readonly taxonomy: SharedEntityData;
 }): Promise<void> {
 	await createContentTypeAsync(type, element);
-	await Promise.all([createTaxonomyAsync(taxonomy), renameLanguageAsync(language), createContentItemAndVariantAsync(item, type, language, element)]);
+	await Promise.all([
+		createTaxonomyAsync(taxonomy),
+		renameLanguageAsync(language),
+		createContentItemAndVariantAsync(item, type, language, element),
+	]);
 }
 
 export async function pollSyncApiAsync<T>({

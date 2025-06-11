@@ -17,7 +17,9 @@ export type InitQueryPayload = z.infer<typeof initQueryPayloadSchema>;
 
 export type InitQuery = BaseQuery<InitQueryPayload, InitQueryMetadata>;
 
-export function getInitQuery<TSyncApiTypes extends SyncClientTypes>(config: SyncClientConfig): ReturnType<SyncClient<TSyncApiTypes>["init"]> {
+export function getInitQuery<TSyncApiTypes extends SyncClientTypes>(
+	config: SyncClientConfig,
+): ReturnType<SyncClient<TSyncApiTypes>["init"]> {
 	const url = getSyncEndpointUrl({ path: "/sync/init", ...config });
 
 	return {

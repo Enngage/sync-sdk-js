@@ -13,7 +13,9 @@ describe("Custom http service", () => {
 			.publicApi()
 			.create({
 				httpService: {
-					requestAsync: async <TResponseData extends JsonValue, TBodyData extends JsonValue>(opts: ExecuteRequestOptions<TBodyData>) => {
+					requestAsync: async <TResponseData extends JsonValue, TBodyData extends JsonValue>(
+						opts: ExecuteRequestOptions<TBodyData>,
+					) => {
 						return await Promise.resolve({
 							success: true,
 							response: {

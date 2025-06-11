@@ -1,9 +1,20 @@
-import { type EmptyObject, type Header, type HttpResponse, type HttpService, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
+import {
+	type EmptyObject,
+	type Header,
+	type HttpResponse,
+	type HttpService,
+	type JsonValue,
+	getDefaultHttpService,
+} from "@kontent-ai/core-sdk";
 import type { ZodError, ZodType } from "zod/v4";
 import type { ApiMode, SyncClientConfig, SyncHeaderNames, SyncResponse, ValidResponseData } from "../models/core.models.js";
 import type { QueryResult } from "../models/utility-models.js";
 
-export async function requestAsync<TResponseData extends JsonValue | Blob, TBodyData extends JsonValue | Blob, TExtraMetadata = EmptyObject>({
+export async function requestAsync<
+	TResponseData extends JsonValue | Blob,
+	TBodyData extends JsonValue | Blob,
+	TExtraMetadata = EmptyObject,
+>({
 	config,
 	func,
 	url,
@@ -95,7 +106,11 @@ export function getSyncEndpointUrl({
 	});
 }
 
-export function getEndpointUrl({ environmentId, path, baseUrl }: { readonly environmentId: string; readonly path: string; readonly baseUrl: string }): string {
+export function getEndpointUrl({
+	environmentId,
+	path,
+	baseUrl,
+}: { readonly environmentId: string; readonly path: string; readonly baseUrl: string }): string {
 	return removeDuplicateSlashes(`${baseUrl}/${environmentId}/${path}`);
 }
 
@@ -104,7 +119,8 @@ export function removeDuplicateSlashes(path: string): string {
 }
 
 export function extractContinuationToken(responseHeaders: readonly Header[]): string | undefined {
-	return responseHeaders.find((header) => header.name.toLowerCase() === ("X-Continuation" satisfies SyncHeaderNames).toLowerCase())?.value;
+	return responseHeaders.find((header) => header.name.toLowerCase() === ("X-Continuation" satisfies SyncHeaderNames).toLowerCase())
+		?.value;
 }
 
 function getHttpService(config: SyncClientConfig) {
