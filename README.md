@@ -4,7 +4,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/Kontent-ai/sync-sdk-js/badge.svg)](https://snyk.io/test/github/kontent-ai/sync-sdk-js)
 [![GitHub license](https://img.shields.io/github/license/Kontent-ai/sync-sdk-js.svg)](https://github.com/kontent-ai/sync-sdk-js)
 
-# Kontent.ai Sync SDK for JavaScript
+# Kontent.ai Sync (v2) SDK for JavaScript
 
 A JavaScript SDK for interacting with the Kontent.ai Sync API v2. This SDK provides a type-safe way to synchronize content changes from your Kontent.ai project.
 
@@ -24,7 +24,7 @@ npm install @kontent-ai/sync-sdk-js
 
 ## Configuration
 
-The SDK can be configured using the `SyncClientConfig` type. Here are the available configuration options:
+The SDK uses a fluent API for client initialization, starting with the `getSyncClient` function. Here are the available configuration options:
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
