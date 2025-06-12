@@ -58,6 +58,8 @@ const client = getSyncClient("your-environment-id")
 
 ### Basic Usage
 
+#### Initializing Synchronization
+
 ```typescript
 import { getSyncClient } from '@kontent-ai/sync-sdk-js';
 
@@ -67,28 +69,32 @@ const client = getSyncClient('your-environment-id')
   .create();
 
 // Initialize synchronization
-const { success: initSuccess, response: initResponse, error: initError } = await client.init().toPromise();
+const { success, response, error } = await client.init().toPromise();
 
-if (!initSuccess) {
+if (!success) {
   // Handle initialization error
-  console.error('Failed to initialize sync:', initError.message);
+  console.error('Failed to initialize sync:', error.message);
   return;
 }
 
-// Get the continuation token
-const continuationToken = initResponse.meta.continuationToken;
+// Get the continuation token for future sync operations
+const continuationToken = response.meta.continuationToken;
+```
 
-// Sync changes
-const { success: syncSuccess, response: syncResponse, error: syncError } = await client.sync(continuationToken).toPromise();
+#### Synchronizing Changes
 
-if (!syncSuccess) {
+```typescript
+// Sync changes using the continuation token
+const { success, response, error } = await client.sync('stored-continuation-token').toPromise();
+
+if (!success) {
   // Handle sync error
-  console.error('Failed to sync changes:', syncError.message);
+  console.error('Failed to sync changes:', error.message);
   return;
 }
 
 // Process changes
-const { items, types, languages, taxonomies } = syncResponse.payload;
+const { items, types, languages, taxonomies } = response.payload;
 // ... handle the changes
 ```
 
