@@ -17,12 +17,9 @@ describe("Paging with 'toAllPromise'", async () => {
 					throw new Error("Continuation must be provided in all request headers");
 				}
 
-				const tokenWithResponseIndex = tokens.findIndex((tokenWithResponse) => tokenWithResponse === continuationToken);
-
-				const payloadForToken = getSyncQueryPayload(continuationToken, tokenWithResponseIndex === tokens.length - 1);
-
-				const nextTokenWithResponseIndex = tokenWithResponseIndex + 1;
-				const nextTokenWithResponse = tokens.length > nextTokenWithResponseIndex ? tokens[nextTokenWithResponseIndex] : undefined;
+				const tokenIndex = tokens.findIndex((token) => token === continuationToken);
+				const nextTokenIndex = tokenIndex + 1;
+				const nextToken = tokens.length > nextTokenIndex ? tokens[nextTokenIndex] : undefined;
 
 				return await Promise.resolve({
 					isValidResponse: true,
@@ -30,11 +27,11 @@ describe("Paging with 'toAllPromise'", async () => {
 						{
 							name: "X-Continuation" satisfies SyncHeaderNames,
 							// use next token if available, otherwise use the current token
-							value: nextTokenWithResponse ? nextTokenWithResponse : continuationToken,
+							value: nextToken ? nextToken : continuationToken,
 						},
 					],
 					status: 200,
-					toJsonAsync: async () => Promise.resolve(payloadForToken),
+					toJsonAsync: async () => Promise.resolve(getSyncQueryPayload(continuationToken, tokenIndex === tokens.length - 1)),
 					toBlobAsync: () => {
 						throw new Error("Not implemented");
 					},
