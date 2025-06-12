@@ -15,20 +15,28 @@ describe("Sync paging query", async () => {
 		throw new Error("Init query failed");
 	}
 
-	const { success: syncSuccess, responses: syncResponses } = await client.sync(initResponse.meta.continuationToken).toAllPromise();
+	const {
+		success: syncSuccess,
+		responses: syncResponses,
+		lastContinuationToken,
+	} = await client.sync(initResponse.meta.continuationToken).toAllPromise();
 
 	it("Sync query should be successful", () => {
-		expect(syncSuccess).toBe(true);
+		expect(syncSuccess).toStrictEqual(true);
 	});
 
 	it("There should be exactly 1 response", () => {
-		expect(syncResponses?.length).toBe(1);
+		expect(syncResponses?.length).toStrictEqual(1);
 	});
 
 	const syncResponse = syncResponses?.[0];
 
 	it("Response should have a continuation token", () => {
 		expect(syncResponse?.meta.continuationToken).toBeDefined();
+	});
+
+	it("Last continuation token should be the same as last response continuation token", () => {
+		expect(lastContinuationToken).toStrictEqual(syncResponses?.at(-1)?.meta.continuationToken);
 	});
 
 	it("Response payload should match sync query payload schema", async () => {

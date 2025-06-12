@@ -6,7 +6,9 @@ import type { SyncSdkError } from "./core.models.js";
  * Ensures that consumers of this library handle both success and failure cases.
  */
 export type QueryResult<TResponse> = (Success & { readonly response: TResponse }) | (Failure & { readonly response?: never });
-export type PagingQueryResult<TResponse> = (Success & { readonly responses: TResponse[] }) | (Failure & { readonly responses?: never });
+export type PagingQueryResult<TResponse> =
+	| (Success & { readonly responses: TResponse[]; readonly lastContinuationToken: string })
+	| (Failure & { readonly responses?: never; readonly lastContinuationToken?: never });
 
 type Success = {
 	readonly success: true;

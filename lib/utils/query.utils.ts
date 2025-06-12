@@ -90,9 +90,21 @@ async function resolvePagingQueryAsync<TPayload extends JsonValue, TBodyData ext
 		}
 	}
 
+	if (responses.length === 0) {
+		return {
+			success: false,
+			error: {
+				reason: "noResponses",
+				url: data.url,
+				message: "No responses were processed. Expected at least one response to be fetched when using paging queries.",
+			},
+		};
+	}
+
 	return {
 		success: true,
 		responses: responses,
+		lastContinuationToken: responses.at(-1)?.meta.continuationToken ?? "",
 	};
 }
 

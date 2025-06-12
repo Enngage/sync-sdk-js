@@ -100,12 +100,19 @@ export type SyncSdkErrorReason = Pick<SyncSdkError, "reason">["reason"];
 
 export type SyncSdkError =
 	| CoreSdkError
-	| (Pick<CoreSdkError, "message"> & {
-			readonly reason: "validationFailed";
-			readonly zodError: ZodError;
-			readonly response: SuccessfulHttpResponse<JsonValue, JsonValue>;
-			readonly url: string;
-	  });
+	| (Pick<CoreSdkError, "message"> &
+			(
+				| {
+						readonly reason: "validationFailed";
+						readonly zodError: ZodError;
+						readonly response: SuccessfulHttpResponse<JsonValue, JsonValue>;
+						readonly url: string;
+				  }
+				| {
+						readonly reason: "noResponses";
+						readonly url: string;
+				  }
+			));
 
 export type SuccessfulHttpResponse<TPayload extends JsonValue, TBodyData extends JsonValue> = Prettify<
 	Extract<HttpResponse<TPayload, TBodyData>, { readonly success: true }>["response"]

@@ -41,7 +41,11 @@ describe("Paging with 'toAllPromise'", async () => {
 		},
 	});
 
-	const { success, responses } = await getSyncClient("x").publicApi().create({ httpService }).sync(tokens[0]).toAllPromise();
+	const { success, responses, lastContinuationToken } = await getSyncClient("x")
+		.publicApi()
+		.create({ httpService })
+		.sync(tokens[0])
+		.toAllPromise();
 
 	it("Should be successful", () => {
 		expect(success).toBe(true);
@@ -49,6 +53,10 @@ describe("Paging with 'toAllPromise'", async () => {
 
 	it(`Should return '${tokens.length}' responses`, () => {
 		expect(responses?.length).toBe(tokens.length);
+	});
+
+	it("Last continuation token should be the same as last response continuation token", () => {
+		expect(lastContinuationToken).toStrictEqual(responses?.at(-1)?.meta.continuationToken);
 	});
 
 	for (const [index, tokenWithResponse] of tokens.entries()) {
