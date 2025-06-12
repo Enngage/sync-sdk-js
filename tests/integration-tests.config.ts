@@ -1,6 +1,6 @@
 import type { Header } from "@kontent-ai/core-sdk";
 import type { SyncHeaderNames } from "../lib/models/core.models.js";
-import { getEndpointUrl } from "../lib/utils/query.utils.js";
+import { getEndpointUrl } from "../lib/utils/url.utils.js";
 import { getEnvironmentOptionalValue, getEnvironmentRequiredValue } from "./utils/test.utils.js";
 
 const integrationEnv = {

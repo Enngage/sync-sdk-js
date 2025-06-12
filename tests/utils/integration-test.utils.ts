@@ -28,6 +28,11 @@ const httpService = getDefaultHttpService({
 			value: `Bearer ${config.env.mapiKey}`,
 		},
 	],
+	retryStrategy: {
+		maxAttempts: 10,
+		logRetryAttempt: false,
+		getDelayBetweenRequestsMs: () => 500,
+	},
 });
 
 export async function prepareEnvironmentAsync({
@@ -87,9 +92,14 @@ export async function pollSyncApiAsync<T>({
 	readonly getDeltaObject: (response: SyncResponse<SyncQueryPayload<SyncClientTypes>>) => T | undefined;
 	readonly retryAttempt: number;
 	readonly maxRetries: number;
-}): Promise<T | undefined> {
+}): Promise<
+	| { readonly success: true; readonly deltaObject: T; readonly syncResponse: SyncResponse<SyncQueryPayload<SyncClientTypes>> }
+	| { readonly success: false; readonly deltaObject?: never; readonly syncResponse?: never }
+> {
 	if (retryAttempt >= maxRetries) {
-		return undefined;
+		return {
+			success: false,
+		};
 	}
 
 	const { response: syncResponse, success } = await client.sync(token).toPromise();
@@ -113,7 +123,11 @@ export async function pollSyncApiAsync<T>({
 		});
 	}
 
-	return data;
+	return {
+		success: true,
+		deltaObject: data,
+		syncResponse: syncResponse,
+	};
 }
 
 export async function waitUntilDeliveryEntityIsDeletedAsync({

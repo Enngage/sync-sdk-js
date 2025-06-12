@@ -1,6 +1,6 @@
-import type { EmptyObject, Override, Prettify } from "@kontent-ai/core-sdk";
+import type { Override, Prettify } from "@kontent-ai/core-sdk";
 import z from "zod/v4";
-import type { BaseQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from "../models/core.models.js";
+import type { PagingQuery, SyncClient, SyncClientConfig, SyncClientTypes, SyncHeaderNames } from "../models/core.models.js";
 import type {
 	ContentItemDeltaObject,
 	ContentTypeDeltaObject,
@@ -13,7 +13,10 @@ import {
 	languageDeltaObjectSchema,
 	taxonomyDeltaObjectSchema,
 } from "../schemas/synchronization.schemas.js";
-import { getSyncEndpointUrl, requestAsync } from "../utils/query.utils.js";
+import { extractContinuationToken, getPagingQuery } from "../utils/query.utils.js";
+import { getSyncEndpointUrl } from "../utils/url.utils.js";
+
+type SyncQueryMetadata = { readonly continuationToken: string };
 
 export const syncQueryPayloadSchema = z.readonly(
 	z.object({
@@ -36,7 +39,7 @@ export type SyncQueryPayload<TSyncApiTypes extends SyncClientTypes> = Prettify<
 	>
 >;
 
-export type SyncQuery<TSyncApiTypes extends SyncClientTypes> = BaseQuery<SyncQueryPayload<TSyncApiTypes>>;
+export type SyncQuery<TSyncApiTypes extends SyncClientTypes> = PagingQuery<SyncQueryPayload<TSyncApiTypes>, SyncQueryMetadata>;
 
 export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(
 	config: SyncClientConfig,
@@ -44,28 +47,47 @@ export function getSyncQuery<TSyncApiTypes extends SyncClientTypes>(
 ): ReturnType<SyncClient<TSyncApiTypes>["sync"]> {
 	const url = getSyncEndpointUrl({ path: "/sync", ...config });
 
+	const { toPromise, toAllPromise } = getPagingQuery<SyncQueryPayload<TSyncApiTypes>, null, SyncQueryMetadata>({
+		config,
+		url,
+		continuationToken,
+		extraMetadata: (response) => {
+			const continuationToken = extractContinuationToken(response.adapterResponse.responseHeaders);
+
+			if (!continuationToken) {
+				throw new Error(`Invalid response: missing '${"X-Continuation" satisfies SyncHeaderNames}' header`);
+			}
+
+			return {
+				continuationToken,
+			};
+		},
+		canFetchNextResponse: (response) => {
+			const isEmptyResponse =
+				response.payload.items.length === 0 &&
+				response.payload.types.length === 0 &&
+				response.payload.languages.length === 0 &&
+				response.payload.taxonomies.length === 0;
+
+			// If response is empty, we should not fetch the next response as it indicates that there are no more changes
+			if (!response.meta.continuationToken || isEmptyResponse) {
+				return false;
+			}
+
+			return true;
+		},
+		zodSchema: syncQueryPayloadSchema,
+		request: {
+			url,
+			body: null,
+			method: "GET",
+			requestHeaders: [],
+		},
+	});
+
 	return {
 		toUrl: () => url,
-		toPromise: async () => {
-			return await requestAsync<SyncQueryPayload<TSyncApiTypes>, null, EmptyObject>({
-				config,
-				url,
-				extraMetadata: () => ({}),
-				zodSchema: syncQueryPayloadSchema,
-				func: async (httpService) => {
-					return await httpService.requestAsync({
-						url: url,
-						body: null,
-						method: "GET",
-						requestHeaders: [
-							{
-								name: "X-Continuation" satisfies SyncHeaderNames,
-								value: continuationToken,
-							},
-						],
-					});
-				},
-			});
-		},
+		toPromise,
+		toAllPromise,
 	};
 }

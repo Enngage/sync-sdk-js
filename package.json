@@ -23,7 +23,7 @@
 		"prepublishOnly": "npm run build && npm run push:tags",
 		"publish:beta": "npm publish --tag=next",
 		"eslint": "eslint",
-		"build": "npm run biome:check && npm run eslint && npm run clean &&  tsc --p tsconfig.build.json && npm run update:version",
+		"build": "npm run biome:check && npm run biome:fix && npm run eslint && npm run clean && tsc --p tsconfig.build.json && npm run update:version",
 		"test": "npm run test:unit && npm run test:integration",
 		"test:unit": "vitest run --config=vitest-unit.config.ts",
 		"test:integration": "vitest run --config=vitest-integration.config.ts",
@@ -36,7 +36,7 @@
 	},
 	"dependencies": {
 		"@kontent-ai/core-sdk": "11.0.0-8",
-		"zod": "3.25.60"
+		"zod": "3.25.63"
 	},
 	"devDependencies": {
 		"@kontent-ai/biome-config": "0.4.0",
@@ -44,12 +44,12 @@
 		"@typescript-eslint/eslint-plugin": "8.34.0",
 		"eslint": "9.28.0",
 		"@biomejs/biome": "1.9.4",
-		"@types/node": "24.0.0",
+		"@types/node": "24.0.1",
 		"chalk": "5.4.1",
 		"standard-version": "9.5.0",
 		"typescript": "5.8.3",
 		"vitest": "3.2.3",
 		"dotenv-cli": "8.0.0",
-		"tsx": "4.20.0"
+		"tsx": "4.20.1"
 	}
 }

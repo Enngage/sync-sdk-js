@@ -1,33 +1,120 @@
-import {
-	type EmptyObject,
-	type Header,
-	type HttpResponse,
-	type HttpService,
-	type JsonValue,
-	getDefaultHttpService,
-} from "@kontent-ai/core-sdk";
+import { type EmptyObject, type Header, type HttpService, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
 import type { ZodError, ZodType } from "zod/v4";
-import type { ApiMode, SyncClientConfig, SyncHeaderNames, SyncResponse, ValidResponseData } from "../models/core.models.js";
-import type { QueryResult } from "../models/utility-models.js";
+import type { PagingQuery, Query, SuccessfulHttpResponse, SyncClientConfig, SyncHeaderNames, SyncResponse } from "../models/core.models.js";
 
-export async function requestAsync<
-	TResponseData extends JsonValue | Blob,
-	TBodyData extends JsonValue | Blob,
-	TExtraMetadata = EmptyObject,
->({
+type ResolveToPromiseQuery<TPayload extends JsonValue, TExtraMetadata = EmptyObject> = ReturnType<
+	Pick<Query<TPayload, TExtraMetadata>, "toPromise">["toPromise"]
+>;
+
+type ResolveToAllPromiseQuery<TPayload extends JsonValue, TExtraMetadata = EmptyObject> = ReturnType<
+	Pick<PagingQuery<TPayload, TExtraMetadata>, "toAllPromise">["toAllPromise"]
+>;
+
+export function getQuery<TPayload extends JsonValue, TBodyData extends JsonValue, TExtraMetadata = EmptyObject>(
+	data: Parameters<typeof resolveQueryAsync<TPayload, TBodyData, TExtraMetadata>>[0],
+): Pick<Query<TPayload, TExtraMetadata>, "toPromise"> {
+	return {
+		toPromise: async () => {
+			return await resolveQueryAsync<TPayload, TBodyData, TExtraMetadata>(data);
+		},
+	};
+}
+
+export function getPagingQuery<TPayload extends JsonValue, TBodyData extends JsonValue, TExtraMetadata = EmptyObject>(
+	data: Parameters<typeof resolveQueryAsync<TPayload, TBodyData, TExtraMetadata>>[0] & {
+		readonly canFetchNextResponse: (response: SyncResponse<TPayload, TExtraMetadata>) => boolean;
+		readonly continuationToken: string;
+	},
+): Pick<PagingQuery<TPayload, TExtraMetadata>, "toPromise" | "toAllPromise"> {
+	return {
+		toPromise: async () => {
+			return await resolveQueryAsync<TPayload, TBodyData, TExtraMetadata>(data);
+		},
+		toAllPromise: async () => {
+			return await resolvePagingQueryAsync<TPayload, TBodyData, TExtraMetadata>(data);
+		},
+	};
+}
+
+export function extractContinuationToken(responseHeaders: readonly Header[]): string | undefined {
+	return responseHeaders.find((header) => header.name.toLowerCase() === ("X-Continuation" satisfies SyncHeaderNames).toLowerCase())
+		?.value;
+}
+
+function getHttpService(config: SyncClientConfig) {
+	return config.httpService ?? getDefaultHttpService();
+}
+
+function getRequestHeadersWithContinuationToken(
+	requestHeaders: readonly Header[],
+	continuationToken: string | undefined,
+): readonly Header[] {
+	return [
+		...requestHeaders,
+		...(continuationToken
+			? [
+					{
+						name: "X-Continuation" satisfies SyncHeaderNames,
+						value: continuationToken,
+					},
+				]
+			: []),
+	];
+}
+
+async function resolvePagingQueryAsync<TPayload extends JsonValue, TBodyData extends JsonValue, TExtraMetadata = EmptyObject>(
+	data: Parameters<typeof getPagingQuery<TPayload, TBodyData, TExtraMetadata>>[0],
+): Promise<ResolveToAllPromiseQuery<TPayload, TExtraMetadata>> {
+	const responses: SyncResponse<TPayload, TExtraMetadata>[] = [];
+	let nextContinuationToken: string | undefined = data.continuationToken;
+
+	while (nextContinuationToken) {
+		const { success, response, error } = await getQuery<TPayload, TBodyData, TExtraMetadata>({
+			...data,
+			continuationToken: nextContinuationToken,
+		}).toPromise();
+
+		if (success) {
+			responses.push(response);
+
+			if (data.canFetchNextResponse(response)) {
+				nextContinuationToken = response.meta.continuationToken;
+			} else {
+				nextContinuationToken = undefined;
+			}
+		} else {
+			return {
+				success: false,
+				error: error,
+			};
+		}
+	}
+
+	return {
+		success: true,
+		responses: responses,
+	};
+}
+
+async function resolveQueryAsync<TPayload extends JsonValue, TBodyData extends JsonValue, TExtraMetadata = EmptyObject>({
 	config,
-	func,
+	request,
 	url,
 	extraMetadata,
 	zodSchema,
+	continuationToken,
 }: {
-	readonly extraMetadata: (response: ValidResponseData<TResponseData, TBodyData>) => TExtraMetadata;
-	readonly func: (httpService: HttpService) => Promise<HttpResponse<TResponseData, TBodyData>>;
+	readonly continuationToken: string | undefined;
+	readonly request: Parameters<HttpService["requestAsync"]>[number] & { readonly body: TBodyData };
+	readonly extraMetadata: (response: SuccessfulHttpResponse<TPayload, TBodyData>) => TExtraMetadata;
 	readonly config: SyncClientConfig;
 	readonly url: string;
-	readonly zodSchema: ZodType<TResponseData>;
-}): Promise<QueryResult<SyncResponse<TResponseData, TExtraMetadata>>> {
-	const { success, response, error } = await func(getHttpService(config));
+	readonly zodSchema: ZodType<TPayload>;
+}): ResolveToPromiseQuery<TPayload, TExtraMetadata> {
+	const { success, response, error } = await getHttpService(config).requestAsync<TPayload, TBodyData>({
+		...request,
+		requestHeaders: getRequestHeadersWithContinuationToken(request.requestHeaders ?? [], continuationToken),
+	});
 
 	if (!success) {
 		return {
@@ -66,9 +153,9 @@ export async function requestAsync<
 	};
 }
 
-async function validateResponseAsync<TResponseData extends JsonValue | Blob>(
-	data: TResponseData,
-	zodSchema: ZodType<TResponseData>,
+async function validateResponseAsync<TPayload extends JsonValue>(
+	data: TPayload,
+	zodSchema: ZodType<TPayload>,
 ): Promise<
 	| {
 			readonly isValid: true;
@@ -91,46 +178,4 @@ async function validateResponseAsync<TResponseData extends JsonValue | Blob>(
 		isValid: false,
 		error: validateResult.error,
 	};
-}
-
-export function getSyncEndpointUrl({
-	environmentId,
-	path,
-	baseUrl,
-	apiMode,
-}: { readonly path: string } & Pick<SyncClientConfig, "baseUrl" | "environmentId" | "apiMode">): string {
-	return getEndpointUrl({
-		environmentId,
-		path,
-		baseUrl: baseUrl ?? getDefaultBaseUrlForApiMode(apiMode),
-	});
-}
-
-export function getEndpointUrl({
-	environmentId,
-	path,
-	baseUrl,
-}: { readonly environmentId: string; readonly path: string; readonly baseUrl: string }): string {
-	return removeDuplicateSlashes(`${baseUrl}/${environmentId}/${path}`);
-}
-
-export function removeDuplicateSlashes(path: string): string {
-	return path.replace(/\/+/g, "/");
-}
-
-export function extractContinuationToken(responseHeaders: readonly Header[]): string | undefined {
-	return responseHeaders.find((header) => header.name.toLowerCase() === ("X-Continuation" satisfies SyncHeaderNames).toLowerCase())
-		?.value;
-}
-
-function getHttpService(config: SyncClientConfig) {
-	return config.httpService ?? getDefaultHttpService();
-}
-
-function getDefaultBaseUrlForApiMode(apiMode: ApiMode): string {
-	if (apiMode === "preview") {
-		return "https://preview-deliver.kontent.ai";
-	}
-
-	return "https://deliver.kontent.ai";
 }

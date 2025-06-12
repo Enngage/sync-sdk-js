@@ -1,5 +1,7 @@
 import { describe, expect, it, suite } from "vitest";
+import type { ZodType } from "zod/v4";
 import { getSyncClient } from "../../lib/client/sync-client.js";
+import type { SyncResponse } from "../../lib/models/core.models.js";
 import { syncQueryPayloadSchema } from "../../lib/queries/sync-query.js";
 import {
 	contentItemDeltaObjectSchema,
@@ -28,16 +30,50 @@ describe("Sync query", async () => {
 
 	const token = response?.meta.continuationToken ?? "n/a";
 
-	it("Response payload should match schema", async () => {
-		const parseResult = await syncQueryPayloadSchema.safeParseAsync(response?.payload);
-		expect(parseResult.error).toBeUndefined();
-		expect(parseResult.success).toBeTruthy();
+	it("Init response should have continuation token", () => {
+		expect(response?.meta.continuationToken).toBeDefined();
 	});
 
 	await processChangesForIntegrationTestAsync(syncData);
 
+	const validateSyncResponseAndObjectAsync = async ({
+		success,
+		schema,
+		deltaObject,
+		syncResponse,
+	}: {
+		readonly success: boolean;
+		readonly schema: ZodType;
+		readonly deltaObject: unknown;
+		readonly syncResponse: SyncResponse<unknown> | undefined;
+	}) => {
+		it("Success should be true", () => {
+			expect(success).toBe(true);
+		});
+
+		it("Response should have continuation token", () => {
+			expect(syncResponse?.meta.continuationToken).toBeDefined();
+		});
+
+		it("Sync Continuation token should should be different from init continuation token", () => {
+			expect(syncResponse?.meta.continuationToken).not.toBe(token);
+		});
+
+		it("Response payload should match sync query payload schema", async () => {
+			const parseResult = await syncQueryPayloadSchema.safeParseAsync(syncResponse?.payload);
+			expect(parseResult.error).toBeUndefined();
+			expect(parseResult.success).toBeTruthy();
+		});
+
+		it("Response payload should match schema", async () => {
+			const parseResult = await schema.safeParseAsync(deltaObject);
+			expect(parseResult.error).toBeUndefined();
+			expect(parseResult.success).toBeTruthy();
+		});
+	};
+
 	suite.concurrent("Type delta object", async () => {
-		const deltaTypeObject = await pollSyncApiAsync({
+		const { success, deltaObject, syncResponse } = await pollSyncApiAsync({
 			client,
 			token,
 			getDeltaObject: (response) => response.payload.types.find((m) => m.data.system.codename === syncData.type.codename),
@@ -46,15 +82,16 @@ describe("Sync query", async () => {
 			pollWaitInMs,
 		});
 
-		it("Response payload should match schema", async () => {
-			const parseResult = await contentTypeDeltaObjectSchema.safeParseAsync(deltaTypeObject);
-			expect(parseResult.error).toBeUndefined();
-			expect(parseResult.success).toBeTruthy();
+		await validateSyncResponseAndObjectAsync({
+			success,
+			deltaObject,
+			syncResponse,
+			schema: contentTypeDeltaObjectSchema,
 		});
 	});
 
 	suite.concurrent("Taxonomy delta object", async () => {
-		const deltaTaxonomyObject = await pollSyncApiAsync({
+		const { success, deltaObject, syncResponse } = await pollSyncApiAsync({
 			client,
 			token,
 			getDeltaObject: (response) => response.payload.taxonomies.find((m) => m.data.system.codename === syncData.taxonomy.codename),
@@ -63,15 +100,16 @@ describe("Sync query", async () => {
 			pollWaitInMs,
 		});
 
-		it("Response payload should match schema", async () => {
-			const parseResult = await taxonomyDeltaObjectSchema.safeParseAsync(deltaTaxonomyObject);
-			expect(parseResult.error).toBeUndefined();
-			expect(parseResult.success).toBeTruthy();
+		await validateSyncResponseAndObjectAsync({
+			success,
+			deltaObject,
+			syncResponse,
+			schema: taxonomyDeltaObjectSchema,
 		});
 	});
 
 	suite.concurrent("Item delta object", async () => {
-		const deltaItemObject = await pollSyncApiAsync({
+		const { success, deltaObject, syncResponse } = await pollSyncApiAsync({
 			client,
 			token,
 			getDeltaObject: (response) => response.payload.items.find((m) => m.data.system.codename === syncData.item.codename),
@@ -80,15 +118,16 @@ describe("Sync query", async () => {
 			pollWaitInMs,
 		});
 
-		it("Response payload should match schema", async () => {
-			const parseResult = await contentItemDeltaObjectSchema.safeParseAsync(deltaItemObject);
-			expect(parseResult.error).toBeUndefined();
-			expect(parseResult.success).toBeTruthy();
+		await validateSyncResponseAndObjectAsync({
+			success,
+			deltaObject,
+			syncResponse,
+			schema: contentItemDeltaObjectSchema,
 		});
 	});
 
 	suite.concurrent("Language delta object", async () => {
-		const deltaLanguageObject = await pollSyncApiAsync({
+		const { success, deltaObject, syncResponse } = await pollSyncApiAsync({
 			client,
 			token,
 			getDeltaObject: (response) => response.payload.languages.find((m) => m.data.system.codename === syncData.language.codename),
@@ -97,10 +136,11 @@ describe("Sync query", async () => {
 			pollWaitInMs,
 		});
 
-		it("Response payload should match schema", async () => {
-			const parseResult = await languageDeltaObjectSchema.safeParseAsync(deltaLanguageObject);
-			expect(parseResult.error).toBeUndefined();
-			expect(parseResult.success).toBeTruthy();
+		await validateSyncResponseAndObjectAsync({
+			success,
+			deltaObject,
+			syncResponse,
+			schema: languageDeltaObjectSchema,
 		});
 	});
 });
