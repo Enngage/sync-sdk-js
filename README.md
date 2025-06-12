@@ -35,6 +35,25 @@ The SDK uses a fluent API for client initialization, starting with the `getSyncC
 | `baseUrl` | string | No | The base URL to use for the request. If not provided, the default base URL will be used. |
 | `responseValidation` | { enable: boolean } | No | Configuration for response validation. When enabled, the response payload will be validated against the expected schema. Defaults to false. |
 
+These options can be set in the `create` function:
+
+```typescript
+const client = getSyncClient("your-environment-id")
+  .publicApi()
+  .create({
+    baseUrl: "https://your-custom-base-url.com",
+    httpService: getDefaultHttpService({
+      retryStrategy: {
+        maxAttempts: 5,
+        logRetryAttempt: false,
+      },
+    }),
+    responseValidation: {
+      enable: true,
+    },
+  });
+```
+
 ## Usage
 
 ### Basic Usage
