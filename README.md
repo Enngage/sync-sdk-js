@@ -6,7 +6,7 @@
 
 # Kontent.ai Sync (v2) SDK for JavaScript
 
-A JavaScript SDK for interacting with the Kontent.ai Sync API v2. This SDK provides a type-safe way to synchronize content changes from your Kontent.ai project.
+A JavaScript SDK for interacting with the [Kontent.ai Sync API v2](https://kontent.ai/learn/docs/apis/openapi/sync-api-v2). This SDK provides a type-safe way to synchronize content changes from your Kontent.ai project.
 
 ## Features
 
