@@ -67,21 +67,29 @@ const client = getSyncClient('your-environment-id')
   .create();
 
 // Initialize synchronization
-const { response: initResponse } = await client.init().toPromise();
+const { success: initSuccess, response: initResponse, error: initError } = await client.init().toPromise();
 
-if (initResponse) {
-  // Get the continuation token
-  const continuationToken = initResponse.meta.continuationToken;
-
-  // Sync changes
-  const { response: syncResponse } = await client.sync(continuationToken).toPromise();
-  
-  if (syncResponse) {
-    // Process changes
-    const { items, types, languages, taxonomies } = syncResponse.payload;
-    // ... handle the changes
-  }
+if (!initSuccess) {
+  // Handle initialization error
+  console.error('Failed to initialize sync:', initError.message);
+  return;
 }
+
+// Get the continuation token
+const continuationToken = initResponse.meta.continuationToken;
+
+// Sync changes
+const { success: syncSuccess, response: syncResponse, error: syncError } = await client.sync(continuationToken).toPromise();
+
+if (!syncSuccess) {
+  // Handle sync error
+  console.error('Failed to sync changes:', syncError.message);
+  return;
+}
+
+// Process changes
+const { items, types, languages, taxonomies } = syncResponse.payload;
+// ... handle the changes
 ```
 
 ### Using Preview API
