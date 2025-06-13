@@ -1,22 +1,48 @@
-import type { Header } from "@kontent-ai/core-sdk";
-import type { SyncHeaderNames } from "../lib/models/core.models.js";
 import { getEndpointUrl } from "../lib/utils/url.utils.js";
 import { getEnvironmentOptionalValue, getEnvironmentRequiredValue } from "./utils/test.utils.js";
 
-const integrationEnv = {
-	id: getEnvironmentRequiredValue("INTEGRATION_ENVIRONMENT_ID"),
-	mapiKey: getEnvironmentRequiredValue("INTEGRATION_MANAGEMENT_API_KEY"),
-	mapiBaseUrl: getEnvironmentOptionalValue("INTEGRATION_MANAGEMENT_BASE_URL"),
-	deliveryBaseUrl: getEnvironmentOptionalValue("INTEGRATION_DELIVERY_BASE_URL"),
-	syncBaseUrl: getEnvironmentOptionalValue("INTEGRATION_DELIVERY_SYNC_BASE_URL"),
-} as const;
-
 export function getIntegrationTestConfig() {
+	const integrationEnv = {
+		id: getEnvironmentRequiredValue("INTEGRATION_ENVIRONMENT_ID"),
+		mapiKey: getEnvironmentRequiredValue("INTEGRATION_MANAGEMENT_API_KEY"),
+		mapiBaseUrl: getEnvironmentOptionalValue("INTEGRATION_MANAGEMENT_BASE_URL"),
+		deliveryBaseUrl: getEnvironmentOptionalValue("INTEGRATION_DELIVERY_BASE_URL"),
+		syncBaseUrl: getEnvironmentOptionalValue("INTEGRATION_DELIVERY_SYNC_BASE_URL"),
+	} as const;
+
 	const languageVariantUrl = (itemCodename: string, languageCodename: string) =>
 		getMapiEndpointUrl({
 			environmentId: integrationEnv.id,
 			path: `/items/codename/${itemCodename}/variants/codename/${languageCodename}`,
 		});
+
+	const getMapiEndpointUrl = ({
+		environmentId,
+		path,
+	}: {
+		readonly environmentId: string;
+		readonly path: string;
+	}): string => {
+		return getEndpointUrl({
+			environmentId,
+			path,
+			baseUrl: integrationEnv.mapiBaseUrl ?? "https://manage.kontent.ai/v2/projects/",
+		});
+	};
+
+	const getDeliveryEndpointUrl = ({
+		environmentId,
+		path,
+	}: {
+		readonly environmentId: string;
+		readonly path: string;
+	}): string => {
+		return getEndpointUrl({
+			environmentId,
+			path,
+			baseUrl: integrationEnv.deliveryBaseUrl ?? "https://deliver.kontent.ai/",
+		});
+	};
 
 	return {
 		env: integrationEnv,
@@ -74,37 +100,4 @@ export function getIntegrationTestConfig() {
 				}),
 		},
 	};
-}
-
-export const fakeXContinuationTokenHeader: Header = {
-	name: "X-Continuation" satisfies SyncHeaderNames,
-	value: "x",
-};
-
-function getMapiEndpointUrl({
-	environmentId,
-	path,
-}: {
-	readonly environmentId: string;
-	readonly path: string;
-}): string {
-	return getEndpointUrl({
-		environmentId,
-		path,
-		baseUrl: integrationEnv.mapiBaseUrl ?? "https://manage.kontent.ai/v2/projects/",
-	});
-}
-
-function getDeliveryEndpointUrl({
-	environmentId,
-	path,
-}: {
-	readonly environmentId: string;
-	readonly path: string;
-}): string {
-	return getEndpointUrl({
-		environmentId,
-		path,
-		baseUrl: integrationEnv.deliveryBaseUrl ?? "https://deliver.kontent.ai/",
-	});
 }

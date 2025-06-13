@@ -1,7 +1,7 @@
 import { type ExecuteRequestOptions, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
 import { describe, expect, it, test } from "vitest";
 import { getSyncClient } from "../../../lib/public_api.js";
-import { fakeXContinuationTokenHeader } from "../../integration-tests.config.js";
+import { fakeXContinuationTokenHeader } from "../../utils/test.utils.js";
 
 class CustomError extends Error {}
 
