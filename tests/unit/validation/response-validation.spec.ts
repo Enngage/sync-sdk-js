@@ -2,7 +2,7 @@ import { type HttpService, type JsonValue, getDefaultHttpService } from "@konten
 import { describe, test } from "vitest";
 import { ZodError } from "zod/v4";
 import { type InitQueryPayload, type SyncSdkErrorReason, getSyncClient } from "../../../lib/public_api.js";
-import { fakeXContinuationTokenHeader } from "../../integration-tests.config.js";
+import { fakeXContinuationTokenHeader } from "../../utils/test.utils.js";
 
 describe("Response validation", () => {
 	test("Error should be returned when response does not match schema and validation is enabled", async ({ expect }) => {
