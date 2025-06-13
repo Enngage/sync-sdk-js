@@ -110,24 +110,23 @@ export async function pollSyncApiAsync<T>({
 
 	const data = await getDeltaObject(syncResponse);
 
-	if (!data) {
-		// if data is not available, wait & try again
-		await waitAsync(pollWaitInMs);
-		return await pollSyncApiAsync({
-			client,
-			getDeltaObject,
-			token,
-			retryAttempt: retryAttempt + 1,
-			maxRetries,
-			pollWaitInMs,
-		});
+	if (data) {
+		return {
+			success: true,
+			deltaObject: data,
+			syncResponse: syncResponse,
+		};
 	}
 
-	return {
-		success: true,
-		deltaObject: data,
-		syncResponse: syncResponse,
-	};
+	await waitAsync(pollWaitInMs);
+	return await pollSyncApiAsync({
+		client,
+		getDeltaObject,
+		token,
+		retryAttempt: retryAttempt + 1,
+		maxRetries,
+		pollWaitInMs,
+	});
 }
 
 export async function waitUntilDeliveryEntityIsDeletedAsync({

@@ -27,9 +27,7 @@ export function getPagingQuery<TPayload extends JsonValue, TBodyData extends Jso
 	},
 ): Pick<PagingQuery<TPayload, TExtraMetadata>, "toPromise" | "toAllPromise"> {
 	return {
-		toPromise: async () => {
-			return await resolveQueryAsync<TPayload, TBodyData, TExtraMetadata>(data);
-		},
+		...getQuery<TPayload, TBodyData, TExtraMetadata>(data),
 		toAllPromise: async () => {
 			return await resolvePagingQueryAsync<TPayload, TBodyData, TExtraMetadata>(data);
 		},

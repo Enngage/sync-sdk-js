@@ -105,6 +105,6 @@ function getDeliveryEndpointUrl({
 	return getEndpointUrl({
 		environmentId,
 		path,
-		baseUrl: integrationEnv.deliveryBaseUrl ?? "https://delivery.kontent.ai/",
+		baseUrl: integrationEnv.deliveryBaseUrl ?? "https://deliver.kontent.ai/",
 	});
 }

@@ -26,7 +26,7 @@ function getDefaultBaseUrlForApiMode(apiMode: ApiMode): string {
 		return "https://preview-deliver.kontent.ai";
 	}
 
-	return "https://deliver.kontent.ai";
+	return "https://deliver.kontent.ai/v2";
 }
 
 function removeDuplicateSlashes(path: string): string {
