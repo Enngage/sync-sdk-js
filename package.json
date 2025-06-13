@@ -16,12 +16,7 @@
 	"exports": "./dist/public_api.js",
 	"type": "module",
 	"scripts": {
-		"release": "standard-version",
-		"release:major": "standard-version --release-as major",
-		"release:beta": "standard-version --prerelease",
-		"release:beta:major": "standard-version --prerelease --release-as major",
-		"prepublishOnly": "npm run build && npm run push:tags",
-		"publish:beta": "npm publish --tag=next",
+		"prepublishOnly": "npm run build",
 		"eslint": "eslint",
 		"build": "npm run biome:check && npm run biome:fix && npm run eslint && npm run clean && tsc --p tsconfig.build.json && npm run update:version",
 		"test": "npm run test:unit && npm run test:integration",
@@ -31,12 +26,11 @@
 		"biome:fix": "biome check --write",
 		"biome:fix:unsafe": "biome check --write --unsafe",
 		"clean": "tsx scripts/clean.ts",
-		"push:tags": "git push --tags",
 		"update:version": "tsx ./scripts/update-version.ts"
 	},
 	"dependencies": {
 		"@kontent-ai/core-sdk": "11.0.0-8",
-		"zod": "3.25.63"
+		"zod": "3.25.64"
 	},
 	"devDependencies": {
 		"@kontent-ai/biome-config": "0.4.0",
@@ -46,7 +40,6 @@
 		"@biomejs/biome": "1.9.4",
 		"@types/node": "24.0.1",
 		"chalk": "5.4.1",
-		"standard-version": "9.5.0",
 		"typescript": "5.8.3",
 		"vitest": "3.2.3",
 		"dotenv-cli": "8.0.0",
