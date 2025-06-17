@@ -1,6 +1,14 @@
-import { type EmptyObject, type Header, type HttpService, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
+import {
+	type EmptyObject,
+	type Header,
+	type HttpService,
+	type JsonValue,
+	getDefaultHttpService,
+	getSdkIdHeader,
+} from "@kontent-ai/core-sdk";
 import type { ZodError, ZodType } from "zod/v4";
 import type { PagingQuery, Query, SuccessfulHttpResponse, SyncClientConfig, SyncHeaderNames, SyncResponse } from "../models/core.models.js";
+import { sdkInfo } from "../sdk-info.js";
 
 type ResolveToPromiseQuery<TPayload extends JsonValue, TExtraMetadata = EmptyObject> = ReturnType<
 	Pick<Query<TPayload, TExtraMetadata>, "toPromise">["toPromise"]
@@ -43,11 +51,16 @@ function getHttpService(config: SyncClientConfig) {
 	return config.httpService ?? getDefaultHttpService();
 }
 
-function getRequestHeadersWithContinuationToken(
-	requestHeaders: readonly Header[],
-	continuationToken: string | undefined,
-): readonly Header[] {
+function getCombinedRequestHeaders({
+	requestHeaders,
+	continuationToken,
+}: { readonly requestHeaders: readonly Header[]; readonly continuationToken: string | undefined }): readonly Header[] {
 	return [
+		getSdkIdHeader({
+			host: "npmjs.com",
+			name: sdkInfo.name,
+			version: sdkInfo.version,
+		}),
 		...requestHeaders,
 		...(continuationToken
 			? [
@@ -123,7 +136,7 @@ async function resolveQueryAsync<TPayload extends JsonValue, TBodyData extends J
 }): ResolveToPromiseQuery<TPayload, TExtraMetadata> {
 	const { success, response, error } = await getHttpService(config).requestAsync<TPayload, TBodyData>({
 		...request,
-		requestHeaders: getRequestHeadersWithContinuationToken(request.requestHeaders ?? [], continuationToken),
+		requestHeaders: getCombinedRequestHeaders({ requestHeaders: request.requestHeaders ?? [], continuationToken }),
 	});
 
 	if (!success) {

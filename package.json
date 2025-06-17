@@ -29,7 +29,7 @@
 		"update:version": "tsx ./scripts/update-version.ts"
 	},
 	"dependencies": {
-		"@kontent-ai/core-sdk": "11.0.1",
+		"@kontent-ai/core-sdk": "11.0.2",
 		"zod": "3.25.67"
 	},
 	"devDependencies": {
