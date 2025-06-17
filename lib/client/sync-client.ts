@@ -28,6 +28,15 @@ type GetSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
 	};
 };
 
+/**
+ * Creates a new sync client instance using fluent API.
+ *
+ * You may choose to use public, preview or secure API.
+ *
+ * Options can be set within the 'create' function.
+ *
+ * @param environmentId - The Id of the Kontent.ai environment.
+ */
 export function getSyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes>(
 	environmentId: string,
 ): GetSyncClient<TSyncApiTypes> {

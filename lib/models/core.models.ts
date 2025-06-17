@@ -85,10 +85,28 @@ export type SyncClientConfig = {
 	};
 };
 
+/**
+ * Sync client instance.
+ *
+ * @param TSyncApiTypes - The types representing your Kontent.ai environment.
+ * Can be used to narrow down the types of the response payload.
+ * For example, the codenames of langauges, content types etc. can be narrowed.
+ */
 export type SyncClient<TSyncApiTypes extends SyncClientTypes = SyncClientTypes> = {
 	readonly config: SyncClientConfig;
 
+	/**
+	 * Initializes synchronization of changes in all of the supported entities.
+	 * After the initialization, you’ll get the X-Continuation token which you
+	 * should store for later use in the 'sync' function.
+	 */
 	init(): InitQuery;
+
+	/**
+	 * Retrieve a list of delta updates to changed entities since the last synchronization.
+	 *
+	 * @param continuationToken - The continuation token received either from the 'init' function or from the previous 'sync' call.
+	 */
 	sync(continuationToken: string): SyncQuery<TSyncApiTypes>;
 };
 
