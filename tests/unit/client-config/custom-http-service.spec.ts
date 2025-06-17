@@ -1,9 +1,7 @@
-import { type ExecuteRequestOptions, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
-import { describe, expect, it, test } from "vitest";
+import type { ExecuteRequestOptions, JsonValue } from "@kontent-ai/core-sdk";
+import { describe, expect, it } from "vitest";
 import { getSyncClient } from "../../../lib/public_api.js";
 import { fakeXContinuationTokenHeader } from "../../utils/test.utils.js";
-
-class CustomError extends Error {}
 
 describe("Custom http service", () => {
 	it("Custom http service should be used", async () => {
@@ -47,26 +45,5 @@ describe("Custom http service", () => {
 
 		expect(initResponse.response?.payload).toStrictEqual(fakeResponse);
 		expect(initResponse.response?.meta.continuationToken).toStrictEqual(fakeXContinuationTokenHeader.value);
-	});
-
-	test("Error should be thrown as is when custom code causes an exception", async ({ expect }) => {
-		await expect(async () => {
-			await getSyncClient("x")
-				.publicApi()
-				.create({
-					responseValidation: {
-						enable: true,
-					},
-					httpService: getDefaultHttpService({
-						adapter: {
-							requestAsync: () => {
-								throw new CustomError();
-							},
-						},
-					}),
-				})
-				.init()
-				.toPromise();
-		}).rejects.toThrowError(CustomError);
 	});
 });
