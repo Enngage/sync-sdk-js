@@ -29,20 +29,20 @@
 		"update:version": "tsx ./scripts/update-version.ts"
 	},
 	"dependencies": {
-		"@kontent-ai/core-sdk": "11.0.0-8",
-		"zod": "3.25.64"
+		"@kontent-ai/core-sdk": "11.0.1",
+		"zod": "3.25.67"
 	},
 	"devDependencies": {
 		"@kontent-ai/biome-config": "0.4.0",
 		"@kontent-ai/eslint-config": "2.0.1",
-		"@typescript-eslint/eslint-plugin": "8.34.0",
-		"eslint": "9.28.0",
+		"@typescript-eslint/eslint-plugin": "8.34.1",
+		"eslint": "9.29.0",
 		"@biomejs/biome": "1.9.4",
-		"@types/node": "24.0.1",
+		"@types/node": "24.0.3",
 		"chalk": "5.4.1",
 		"typescript": "5.8.3",
 		"vitest": "3.2.3",
 		"dotenv-cli": "8.0.0",
-		"tsx": "4.20.2"
+		"tsx": "4.20.3"
 	}
 }

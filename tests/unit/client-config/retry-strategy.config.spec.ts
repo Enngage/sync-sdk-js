@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { type SyncSdkErrorReason, getSyncClient } from "../../../lib/public_api.js";
 
 describe("Retry strategy config", async () => {
-	const maxAttempts = 7;
+	const maxRetries = 7;
 	const statusCode = 429;
 	const statusText = "Too Many Requests";
 	const { success, error } = await getSyncClient("x")
@@ -15,8 +15,8 @@ describe("Retry strategy config", async () => {
 						return true;
 					},
 					logRetryAttempt: false,
-					getDelayBetweenRequestsMs: () => 0,
-					maxAttempts: maxAttempts,
+					getDelayBetweenRetriesMs: () => 0,
+					maxRetries: maxRetries,
 				},
 				adapter: {
 					requestAsync: async () => {
@@ -47,7 +47,7 @@ describe("Retry strategy config", async () => {
 
 		if (error?.reason === "invalidResponse") {
 			expect(error.status).toStrictEqual(statusCode);
-			expect(error.retryAttempt).toStrictEqual(maxAttempts);
+			expect(error.retryAttempt).toStrictEqual(maxRetries);
 			expect(error.statusText).toStrictEqual(statusText);
 		} else {
 			throw new Error(`Unexpected error reason '${error?.reason}'`);
