@@ -23,7 +23,7 @@ export function getEndpointUrl({
 
 function getDefaultBaseUrlForApiMode(apiMode: ApiMode): string {
 	if (apiMode === "preview") {
-		return "https://preview-deliver.kontent.ai";
+		return "https://preview-deliver.kontent.ai/v2";
 	}
 
 	return "https://deliver.kontent.ai/v2";
