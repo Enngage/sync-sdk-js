@@ -135,3 +135,8 @@ export type SyncSdkError =
 export type SuccessfulHttpResponse<TPayload extends JsonValue, TBodyData extends JsonValue> = Prettify<
 	Extract<HttpResponse<TPayload, TBodyData>, { readonly success: true }>["response"]
 >;
+
+export type ResultOfSuccessfulQuery<TQuery extends Query<unknown, unknown>> = Extract<
+	Awaited<ReturnType<TQuery["toPromise"]>>,
+	{ readonly success: true }
+>["response"];

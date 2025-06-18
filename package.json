@@ -9,13 +9,7 @@
 	"author": "richard sustek",
 	"license": "MIT",
 	"description": "Sync API v2 for Kontent.ai",
-	"keywords": [
-		"Kontent.ai",
-		"Kontent AI",
-		"Kontent SDK Sync API",
-		"Sync API v2",
-		"Sync API"
-	],
+	"keywords": ["Kontent.ai", "Kontent AI", "Kontent SDK Sync API", "Sync API v2", "Sync API"],
 	"engines": {
 		"node": ">= 22"
 	},
@@ -24,7 +18,8 @@
 	"scripts": {
 		"prepublishOnly": "npm run build",
 		"eslint": "eslint",
-		"build": "npm run biome:check && npm run eslint && npm run clean && tsc --p tsconfig.build.json && npm run update:version",
+		"build": "npm run biome:check && npm run eslint && npm run build:noemit && npm run clean && tsc --p tsconfig.build.json && npm run update:version",
+		"build:noemit": "tsc --p tsconfig.json",
 		"test": "npm run test:unit && npm run test:integration",
 		"test:unit": "vitest run --config=vitest-unit.config.ts",
 		"test:integration": "vitest run --config=vitest-integration.config.ts",

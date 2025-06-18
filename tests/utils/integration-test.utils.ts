@@ -1,5 +1,6 @@
 import { type HttpResponse, type JsonValue, getDefaultHttpService } from "@kontent-ai/core-sdk";
-import type { SyncClient, SyncClientTypes, SyncQueryPayload, SyncResponse } from "../../lib/public_api.js";
+import type { ResultOfSuccessfulQuery } from "../../lib/models/core.models.js";
+import type { SyncClient, SyncClientTypes, SyncQuery } from "../../lib/public_api.js";
 import { getIntegrationTestConfig } from "../integration-tests.config.js";
 
 type ElementChangeEntityData = { readonly value: string } & ElementData;
@@ -29,9 +30,9 @@ const httpService = getDefaultHttpService({
 		},
 	],
 	retryStrategy: {
-		maxAttempts: 10,
+		maxRetries: 10,
 		logRetryAttempt: false,
-		getDelayBetweenRequestsMs: () => 500,
+		getDelayBetweenRetriesMs: () => 500,
 	},
 });
 
@@ -89,11 +90,11 @@ export async function pollSyncApiAsync<T>({
 	readonly client: SyncClient<SyncClientTypes>;
 	readonly pollWaitInMs: number;
 	readonly token: string;
-	readonly getDeltaObject: (response: SyncResponse<SyncQueryPayload<SyncClientTypes>>) => T | undefined;
+	readonly getDeltaObject: (response: ResultOfSuccessfulQuery<SyncQuery<SyncClientTypes>>) => T | undefined;
 	readonly retryAttempt: number;
 	readonly maxRetries: number;
 }): Promise<
-	| { readonly success: true; readonly deltaObject: T; readonly syncResponse: SyncResponse<SyncQueryPayload<SyncClientTypes>> }
+	| { readonly success: true; readonly deltaObject: T; readonly syncResponse: ResultOfSuccessfulQuery<SyncQuery<SyncClientTypes>> }
 	| { readonly success: false; readonly deltaObject?: never; readonly syncResponse?: never }
 > {
 	if (retryAttempt >= maxRetries) {

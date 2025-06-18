@@ -1,8 +1,8 @@
 import { describe, expect, it, suite } from "vitest";
 import type { ZodType } from "zod/v4";
 import { getSyncClient } from "../../lib/client/sync-client.js";
-import type { SyncResponse } from "../../lib/models/core.models.js";
-import { syncQueryPayloadSchema } from "../../lib/queries/sync-query.js";
+import type { ResultOfSuccessfulQuery, SyncClientTypes } from "../../lib/models/core.models.js";
+import { type SyncQuery, syncQueryPayloadSchema } from "../../lib/queries/sync-query.js";
 import {
 	contentItemDeltaObjectSchema,
 	contentTypeDeltaObjectSchema,
@@ -45,7 +45,7 @@ describe("Sync query", async () => {
 		readonly success: boolean;
 		readonly schema: ZodType;
 		readonly deltaObject: unknown;
-		readonly syncResponse: SyncResponse<unknown> | undefined;
+		readonly syncResponse: ResultOfSuccessfulQuery<SyncQuery<SyncClientTypes>> | undefined;
 	}) => {
 		it("Success should be true", () => {
 			expect(success).toBe(true);
