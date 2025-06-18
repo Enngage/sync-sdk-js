@@ -46,7 +46,7 @@ const client = getSyncClient("your-environment-id")
     baseUrl: "https://your-custom-base-url.com",
     httpService: getDefaultHttpService({
       retryStrategy: {
-        maxAttempts: 5,
+        maxRetries: 5,
         logRetryAttempt: false,
       },
     }),
