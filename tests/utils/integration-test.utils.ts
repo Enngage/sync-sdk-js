@@ -243,8 +243,8 @@ async function deleteEntityAndWaitUntilPropagatedToDeliveryApiAsync({
 
 	await waitUntilDeliveryEntityIsDeletedAsync({
 		fetchEntityUrl: deliveryGetUrl,
-		maxRetries: 20,
-		pollWaitInMs: 500,
+		maxRetries: 30,
+		pollWaitInMs: 1000,
 		retryAttempt: 0,
 	});
 }

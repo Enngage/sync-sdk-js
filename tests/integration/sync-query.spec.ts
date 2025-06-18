@@ -20,8 +20,8 @@ describe("Sync query", async () => {
 		baseUrl: config.env.syncBaseUrl,
 	});
 	const syncData = getSyncData();
-	const pollWaitInMs: number = 500;
-	const maxRetries: number = 20;
+	const pollWaitInMs: number = 1000;
+	const maxRetries: number = 30;
 
 	await prepareEnvironmentAsync(syncData);
 
