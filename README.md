@@ -10,6 +10,25 @@
 
 A JavaScript SDK for interacting with the [Kontent.ai Sync API v2](https://kontent.ai/learn/docs/apis/openapi/sync-api-v2). This SDK provides a type-safe way to synchronize content changes from your Kontent.ai project.
 
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+  - [Basic Usage](#basic-usage)
+    - [Initializing Synchronization](#initializing-synchronization)
+    - [Synchronizing Changes](#synchronizing-changes)
+  - [Using Preview API](#using-preview-api)
+  - [Using Secure API](#using-secure-api)
+  - [Fetching All Changes](#fetching-all-changes)
+- [Using with Model Generator](#using-with-model-generator)
+  - [Generating Models](#generating-models)
+  - [Using Generated Models](#using-generated-models)
+- [Response Structure](#response-structure)
+- [Error Handling](#error-handling)
+- [License](#license)
+
 ## Features
 
 - Type-safe API for content synchronization
@@ -137,6 +156,54 @@ for (const response of responses) {
 ```
 
 The `lastContinuationToken` is the continuation token from the last response in the sequence. You should store this token and use it for your next sync operations.
+
+## Using with Model Generator
+
+> **💡 Tip**: It is recommended to generate models using the [@kontent-ai/model-generator](https://www.npmjs.com/package/@kontent-ai/model-generator) to increase type safety and improve developer experience.
+
+The SDK can be used in combination with the Kontent.ai Model Generator to provide strongly typed access to your content structure. This allows you to work with content types, taxonomies, and other entities using their codenames with full TypeScript support.
+
+### Generating Models
+
+You can generate models using the CLI:
+
+```bash
+npx @kontent-ai/model-generator@latest sync-sdk
+    --environmentId=<id>
+    --managementApiKey=<key>
+```
+
+Or programmatically:
+
+```typescript
+import { generateSyncModelsAsync } from '@kontent-ai/model-generator';
+
+await generateSyncModelsAsync({
+    // required
+    environmentId: 'x',
+    managementApiKey: 'y',
+    moduleFileExtension: 'js',
+    addTimestamp: false,
+    createFiles: true,
+    outputDir: '/', // only required when createFiles is true
+
+    // optional
+    baseUrl: undefined,
+    formatOptions: { indentSize: 4, quote: 'single' }
+});
+```
+
+### Using Generated Models
+
+Once you have generated the models, you can use them with the SDK for enhanced type safety:
+
+```typescript
+import type { CoreSyncClient, CoreSyncClientTypes } from "<path-to-generated-models>";
+
+// Notice the use of `CoreSyncClient` and `CoreSyncClientTypes`,
+// By providing these types, you can strongly typed access to codenames of entities such as content types, taxonomies, etc.
+const client: CoreSyncClient = getSyncClient<CoreSyncClientTypes>("your-environment-id").publicApi().create();
+```
 
 ## Response Structure
 
