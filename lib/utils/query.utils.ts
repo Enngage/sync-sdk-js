@@ -1,4 +1,5 @@
 import {
+	type CommonHeaderNames,
 	type EmptyObject,
 	type Header,
 	type HttpService,
@@ -54,7 +55,12 @@ function getHttpService(config: SyncClientConfig) {
 function getCombinedRequestHeaders({
 	requestHeaders,
 	continuationToken,
-}: { readonly requestHeaders: readonly Header[]; readonly continuationToken: string | undefined }): readonly Header[] {
+	deliveryApiKey,
+}: {
+	readonly requestHeaders: readonly Header[];
+	readonly continuationToken: string | undefined;
+	readonly deliveryApiKey: string | undefined;
+}): readonly Header[] {
 	return [
 		getSdkIdHeader({
 			host: "npmjs.com",
@@ -67,6 +73,14 @@ function getCombinedRequestHeaders({
 					{
 						name: "X-Continuation" satisfies SyncHeaderNames,
 						value: continuationToken,
+					},
+				]
+			: []),
+		...(deliveryApiKey
+			? [
+					{
+						name: "Authorization" satisfies CommonHeaderNames,
+						value: `Bearer ${deliveryApiKey}`,
 					},
 				]
 			: []),
@@ -136,7 +150,11 @@ async function resolveQueryAsync<TPayload extends JsonValue, TBodyData extends J
 }): ResolveToPromiseQuery<TPayload, TExtraMetadata> {
 	const { success, response, error } = await getHttpService(config).requestAsync<TPayload, TBodyData>({
 		...request,
-		requestHeaders: getCombinedRequestHeaders({ requestHeaders: request.requestHeaders ?? [], continuationToken }),
+		requestHeaders: getCombinedRequestHeaders({
+			requestHeaders: request.requestHeaders ?? [],
+			continuationToken,
+			deliveryApiKey: config.deliveryApiKey,
+		}),
 	});
 
 	if (!success) {
